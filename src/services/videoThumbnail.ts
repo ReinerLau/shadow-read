@@ -7,6 +7,8 @@ export async function extractVideoThumbnail(file: File): Promise<string> {
   return new Promise((resolve) => {
     const video = document.createElement("video");
     const canvas = document.createElement("canvas");
+    // 创建文件的临时URL并加载视频
+    const url = URL.createObjectURL(file);
 
     let resolved = false;
 
@@ -31,16 +33,10 @@ export async function extractVideoThumbnail(file: File): Promise<string> {
       const thumbnailDataUrl = canvas.toDataURL("image/jpeg");
       resolved = true;
       resolve(thumbnailDataUrl);
+      URL.revokeObjectURL(url);
     };
 
-    // 创建文件的临时URL并加载视频
-    const url = URL.createObjectURL(file);
     video.src = url;
     video.preload = "auto";
-
-    // 清理临时URL
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 1000);
   });
 }
