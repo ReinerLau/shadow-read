@@ -1,0 +1,9 @@
+---
+description: 技术文档
+globs:
+alwaysApply: true
+---
+
+- 禁止使用 Ant Design 的图标, 只使用 Material Design Icons 作为图标
+- 使用 JSDoc 注释函数和变量
+- 禁止使用 console.log()

@@ -1,0 +1,13 @@
+---
+description: 架构
+globs:
+alwaysApply: true
+---
+
+- 前端框架: React
+- 构建工具: Vite
+- CSS 框架: UnoCSS、Tailwind CSS v4
+- 图标库: @iconify-json/mdi (Material Design Icons)
+- 路由管理: React Router
+- 组件库: Ant Design
+- IndexedDB 封装库: idb
