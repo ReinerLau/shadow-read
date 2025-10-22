@@ -1,4 +1,4 @@
-import { Button } from "antd";
+import { Button, Spin } from "antd";
 import { useEffect, useState } from "react";
 import ImportVideo from "../components/ImportVideo";
 import VideoCard from "../components/VideoCard";
@@ -50,7 +50,7 @@ function HomePage() {
       <div className="flex-1 overflow-auto p-4">
         {loading ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-gray-500">加载中...</div>
+            <Spin />
           </div>
         ) : videos.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full">
