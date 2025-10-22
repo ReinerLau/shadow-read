@@ -10,8 +10,6 @@ export async function extractVideoThumbnail(file: File): Promise<string> {
     // 创建文件的临时URL并加载视频
     const url = URL.createObjectURL(file);
 
-    let resolved = false;
-
     video.onloadedmetadata = () => {
       // 设置画布尺寸与视频相同
       canvas.width = video.videoWidth;
@@ -22,8 +20,6 @@ export async function extractVideoThumbnail(file: File): Promise<string> {
     };
 
     video.onseeked = () => {
-      if (resolved) return;
-
       // 获取视频的第一帧
       const ctx = canvas.getContext("2d");
 
@@ -31,7 +27,6 @@ export async function extractVideoThumbnail(file: File): Promise<string> {
 
       // 将画布转换为Data URL
       const thumbnailDataUrl = canvas.toDataURL("image/jpeg");
-      resolved = true;
       resolve(thumbnailDataUrl);
       URL.revokeObjectURL(url);
     };
