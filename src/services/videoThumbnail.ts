@@ -4,7 +4,7 @@
  * @returns Promise<string> 返回缩略图的Data URL
  */
 export async function extractVideoThumbnail(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const video = document.createElement("video");
     const canvas = document.createElement("canvas");
 
@@ -24,23 +24,13 @@ export async function extractVideoThumbnail(file: File): Promise<string> {
 
       // 获取视频的第一帧
       const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        resolved = true;
-        reject(new Error("无法获取canvas上下文"));
-        return;
-      }
 
-      try {
-        ctx.drawImage(video, 0, 0);
+      ctx!.drawImage(video, 0, 0);
 
-        // 将画布转换为Data URL
-        const thumbnailDataUrl = canvas.toDataURL("image/jpeg");
-        resolved = true;
-        resolve(thumbnailDataUrl);
-      } catch (error) {
-        resolved = true;
-        reject(error);
-      }
+      // 将画布转换为Data URL
+      const thumbnailDataUrl = canvas.toDataURL("image/jpeg");
+      resolved = true;
+      resolve(thumbnailDataUrl);
     };
 
     // 创建文件的临时URL并加载视频
