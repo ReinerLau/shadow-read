@@ -62,6 +62,34 @@ export interface GameDB extends DBSchema {
 }
 
 /**
+ * 媒体文件数据类型定义
+ */
+export interface MediaFile {
+  /** 文件句柄ID */
+  id: number;
+  /** 文件名称 */
+  name: string;
+  /** 文件句柄（使用 structuredClone 序列化） */
+  handle: FileSystemFileHandle;
+}
+
+/**
+ * 媒体 IndexedDB 数据库结构定义
+ */
+export interface MediaDB extends DBSchema {
+  videos: {
+    key: number;
+    value: MediaFile;
+    indexes: { name: string };
+  };
+  subtitles: {
+    key: number;
+    value: MediaFile;
+    indexes: { name: string };
+  };
+}
+
+/**
  * 扑克牌组件属性
  */
 export interface CardProps {

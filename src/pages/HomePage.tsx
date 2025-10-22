@@ -1,4 +1,5 @@
 import { Button } from "antd";
+import MediaDatabaseService from "../services/mediaDatabase";
 
 /**
  * 首页组件
@@ -21,9 +22,15 @@ function HomePage() {
           },
         ],
       });
-      // 获取文件对象
-      const file = await handle.getFile();
-      void file; // 确保文件被正确使用
+
+      // 保存视频文件句柄到数据库
+      await MediaDatabaseService.saveVideo({
+        name: handle.name,
+        handle: handle as FileSystemFileHandle,
+      });
+
+      // 成功保存后可以进行后续操作（如跳转到播放页）
+      // TODO: 跳转到播放页并播放视频
     } catch (error) {
       // 用户取消选择时不抛出错误
       if (error instanceof DOMException && error.name === "AbortError") {
