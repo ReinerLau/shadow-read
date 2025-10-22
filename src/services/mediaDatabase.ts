@@ -5,7 +5,7 @@ import type { MediaFile, MediaDB } from "../types";
  * 数据库名称和版本
  */
 const DB_NAME = "media";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 /**
  * 数据库实例缓存
@@ -46,7 +46,13 @@ export class MediaDatabaseService {
    */
   static async getAllVideos(): Promise<MediaFile[]> {
     const db = await getDB();
-    return await db.getAll("videos");
+    const allVideos = await db.getAll("videos");
+    // 按最后播放时间降序排列（最近播放的在前）
+    return allVideos.sort((a, b) => {
+      const timeA = a.lastPlayedTime ?? 0;
+      const timeB = b.lastPlayedTime ?? 0;
+      return timeB - timeA;
+    });
   }
 
   /**
@@ -102,6 +108,20 @@ export class MediaDatabaseService {
     return allVideos.filter((video) =>
       video.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+  }
+
+  /**
+   * 更新视频的最后播放时间
+   * @param id - 视频文件句柄ID
+   * @returns Promise<void>
+   */
+  static async updateVideoPlayedTime(id: number): Promise<void> {
+    const db = await getDB();
+    const video = await db.get("videos", id);
+    if (video) {
+      video.lastPlayedTime = Date.now();
+      await db.put("videos", video);
+    }
   }
 
   /**

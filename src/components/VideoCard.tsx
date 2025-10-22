@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router";
 import type { MediaFile } from "../types";
 
 /**
@@ -7,19 +8,27 @@ import type { MediaFile } from "../types";
 interface VideoCardProps {
   /** 视频文件数据 */
   video: MediaFile;
-  /** 点击事件回调 */
-  onClick?: () => void;
 }
 
 /**
  * 视频卡片组件
  * 显示视频封面、时长、名称的卡片
+ * 点击卡片时导航到播放页
  */
-const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
+const VideoCard: React.FC<VideoCardProps> = ({ video }) => {
+  const navigate = useNavigate();
+
+  /**
+   * 处理卡片点击事件，导航到播放页
+   */
+  const handleClick = () => {
+    navigate(`/play/${video.id}`);
+  };
+
   return (
     <div
       className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer"
-      onClick={onClick}
+      onClick={handleClick}
     >
       {/* 视频封面 */}
       <div className="relative w-full aspect-video bg-gray-200 overflow-hidden">

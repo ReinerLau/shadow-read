@@ -46,6 +46,10 @@ function PlayPage() {
           const file = await media.handle.getFile();
           const url = URL.createObjectURL(file);
           setVideoUrl(url);
+
+          // 更新最后播放时间
+          await MediaDatabaseService.updateVideoPlayedTime(media.id);
+
           setLoading(false);
         } catch {
           setError("无法访问视频文件，可能已被删除或权限已更改");

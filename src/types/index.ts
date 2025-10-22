@@ -75,6 +75,8 @@ export interface MediaFile {
   thumbnail?: string;
   /** 视频时长格式化字符串 (HH:MM:SS) */
   duration?: string;
+  /** 最后播放时间（时间戳毫秒） */
+  lastPlayedTime?: number;
 }
 
 /**
