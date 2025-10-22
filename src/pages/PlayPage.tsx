@@ -43,6 +43,7 @@ function PlayPage() {
 
         // 验证文件句柄是否仍然可用
         try {
+          await media.handle.requestPermission({ mode: "read" });
           const file = await media.handle.getFile();
           const url = URL.createObjectURL(file);
           setVideoUrl(url);
