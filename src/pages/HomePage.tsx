@@ -2,7 +2,7 @@ import { Button, Modal, Input, Spin } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import MediaDatabaseService from "../services/mediaDatabase";
-import { extractVideoThumbnail } from "../services/videoThumbnail";
+import { extractVideoMetadata } from "../services/videoThumbnail";
 
 /**
  * 首页组件
@@ -14,6 +14,7 @@ function HomePage() {
   const [selectedHandle, setSelectedHandle] =
     useState<FileSystemFileHandle | null>(null);
   const [thumbnail, setThumbnail] = useState<string | undefined>();
+  const [duration, setDuration] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(false);
 
@@ -40,15 +41,17 @@ function HomePage() {
       setVideoName(handle.name);
       setIsModalOpen(true);
 
-      // 获取视频文件并生成缩略图
+      // 获取视频元数据（缩略图和时长）
       try {
         setIsLoadingThumbnail(true);
         const file = await handle.getFile();
-        const thumbnailUrl = await extractVideoThumbnail(file);
-        setThumbnail(thumbnailUrl);
+        const metadata = await extractVideoMetadata(file);
+        setThumbnail(metadata.thumbnail);
+        setDuration(metadata.duration);
       } catch {
-        // 缩略图生成失败时静默处理
+        // 视频元数据提取失败时静默处理
         setThumbnail(undefined);
+        setDuration(undefined);
       } finally {
         setIsLoadingThumbnail(false);
       }
@@ -72,6 +75,7 @@ function HomePage() {
         name: videoName.trim(),
         handle: selectedHandle as FileSystemFileHandle,
         thumbnail,
+        duration,
       });
 
       // 关闭模态框
@@ -79,6 +83,7 @@ function HomePage() {
       setVideoName("");
       setSelectedHandle(null);
       setThumbnail(undefined);
+      setDuration(undefined);
 
       // 跳转到播放页并播放视频
       navigate(`/play/${mediaId}`);
@@ -98,6 +103,7 @@ function HomePage() {
     setVideoName("");
     setSelectedHandle(null);
     setThumbnail(undefined);
+    setDuration(undefined);
   };
 
   return (
@@ -148,11 +154,17 @@ function HomePage() {
             </div>
           ) : (
             thumbnail && (
-              <img
-                src={thumbnail}
-                alt="视频缩略图"
-                className="w-full h-auto rounded"
-              />
+              <div className="relative">
+                <img
+                  src={thumbnail}
+                  alt="视频缩略图"
+                  className="w-full h-auto rounded"
+                ></img>
+                {/* 视频时长 */}
+                <div className="absolute bottom-1 right-1 bg-black bg-opacity-30 text-white text-sm px-2 py-1 rounded">
+                  {duration}
+                </div>
+              </div>
             )
           )}
           {/* 视频名称输入框 */}

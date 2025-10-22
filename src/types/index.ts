@@ -73,6 +73,8 @@ export interface MediaFile {
   handle: FileSystemFileHandle;
   /** 视频第一帧缩略图 (Data URL) */
   thumbnail?: string;
+  /** 视频时长格式化字符串 (HH:MM:SS) */
+  duration?: string;
 }
 
 /**
