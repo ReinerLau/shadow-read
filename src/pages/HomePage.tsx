@@ -1,10 +1,13 @@
 import { Button } from "antd";
+import { useNavigate } from "react-router";
 import MediaDatabaseService from "../services/mediaDatabase";
 
 /**
  * 首页组件
  */
 function HomePage() {
+  const navigate = useNavigate();
+
   /**
    * 处理视频文件导入
    */
@@ -24,13 +27,13 @@ function HomePage() {
       });
 
       // 保存视频文件句柄到数据库
-      await MediaDatabaseService.saveVideo({
+      const mediaId = await MediaDatabaseService.saveVideo({
         name: handle.name,
         handle: handle as FileSystemFileHandle,
       });
 
-      // 成功保存后可以进行后续操作（如跳转到播放页）
-      // TODO: 跳转到播放页并播放视频
+      // 跳转到播放页并播放视频
+      navigate(`/play/${mediaId}`);
     } catch (error) {
       // 用户取消选择时不抛出错误
       if (error instanceof DOMException && error.name === "AbortError") {
