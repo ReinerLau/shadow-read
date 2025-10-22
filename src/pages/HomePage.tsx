@@ -2,7 +2,7 @@ import { Button, Modal, Input, Spin } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import MediaDatabaseService from "../services/mediaDatabase";
-import { extractVideoMetadata } from "../services/videoThumbnail";
+import { extractVideoMetadata } from "../services/videoData";
 
 /**
  * 首页组件
