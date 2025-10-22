@@ -1,7 +1,8 @@
-import { Button, Modal, Input } from "antd";
+import { Button, Modal, Input, Spin } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import MediaDatabaseService from "../services/mediaDatabase";
+import { extractVideoThumbnail } from "../services/videoThumbnail";
 
 /**
  * 首页组件
@@ -12,7 +13,9 @@ function HomePage() {
   const [videoName, setVideoName] = useState("");
   const [selectedHandle, setSelectedHandle] =
     useState<FileSystemFileHandle | null>(null);
+  const [thumbnail, setThumbnail] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(false);
 
   /**
    * 处理视频文件导入
@@ -36,6 +39,19 @@ function HomePage() {
       setSelectedHandle(handle);
       setVideoName(handle.name);
       setIsModalOpen(true);
+
+      // 获取视频文件并生成缩略图
+      try {
+        setIsLoadingThumbnail(true);
+        const file = await handle.getFile();
+        const thumbnailUrl = await extractVideoThumbnail(file);
+        setThumbnail(thumbnailUrl);
+      } catch {
+        // 缩略图生成失败时静默处理
+        setThumbnail(undefined);
+      } finally {
+        setIsLoadingThumbnail(false);
+      }
     } catch {
       void 0;
     }
@@ -55,12 +71,14 @@ function HomePage() {
       const mediaId = await MediaDatabaseService.saveVideo({
         name: videoName.trim(),
         handle: selectedHandle as FileSystemFileHandle,
+        thumbnail,
       });
 
       // 关闭模态框
       setIsModalOpen(false);
       setVideoName("");
       setSelectedHandle(null);
+      setThumbnail(undefined);
 
       // 跳转到播放页并播放视频
       navigate(`/play/${mediaId}`);
@@ -79,6 +97,7 @@ function HomePage() {
     setIsModalOpen(false);
     setVideoName("");
     setSelectedHandle(null);
+    setThumbnail(undefined);
   };
 
   return (
@@ -121,6 +140,23 @@ function HomePage() {
           </div>
         )}
       >
+        {/* 视频缩略图 */}
+        {isLoadingThumbnail ? (
+          <div className="mb-4 flex justify-center py-8">
+            <Spin />
+          </div>
+        ) : (
+          thumbnail && (
+            <div className="mb-4 flex justify-center">
+              <img
+                src={thumbnail}
+                alt="视频缩略图"
+                className="max-w-full h-auto max-h-60 rounded"
+              />
+            </div>
+          )
+        )}
+        {/* 视频名称输入框 */}
         <Input
           placeholder="请输入视频名称"
           value={videoName}

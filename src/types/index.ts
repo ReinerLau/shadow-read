@@ -71,6 +71,8 @@ export interface MediaFile {
   name: string;
   /** 文件句柄（使用 structuredClone 序列化） */
   handle: FileSystemFileHandle;
+  /** 视频第一帧缩略图 (Data URL) */
+  thumbnail?: string;
 }
 
 /**
