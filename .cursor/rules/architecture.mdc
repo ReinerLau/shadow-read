@@ -4,10 +4,10 @@ globs:
 alwaysApply: true
 ---
 
-- 前端框架: React
-- 构建工具: Vite
-- CSS 框架: UnoCSS、Tailwind CSS v4
-- 图标库: @iconify-json/mdi (Material Design Icons)
-- 路由管理: React Router
-- 组件库: Ant Design
-- IndexedDB 封装库: idb
+- 前端框架: React 19 (https://react.dev/)
+- 构建工具: Vite 7 (https://vite.dev/)
+- CSS 框架: UnoCSS (https://unocss.dev/)、Tailwind CSS 4 (https://tailwindcss.com/)
+- 图标库: @iconify-json/mdi (https://www.npmjs.com/package/@iconify-json/mdi?activeTab=readme) (https://icon-sets.iconify.design/mdi/)
+- 路由管理: React Router 7 (https://reactrouter.com/)
+- 组件库: Ant Design 5 (https://ant.design/)
+- IndexedDB 封装库: idb (https://www.npmjs.com/package/idb)
