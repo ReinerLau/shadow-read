@@ -18,7 +18,7 @@ interface VideoCardProps {
 const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
   return (
     <div
-      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer"
+      className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer"
       onClick={onClick}
     >
       {/* 视频封面 */}
