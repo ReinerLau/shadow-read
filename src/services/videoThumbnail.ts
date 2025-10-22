@@ -34,7 +34,7 @@ export async function extractVideoThumbnail(file: File): Promise<string> {
         ctx.drawImage(video, 0, 0);
 
         // 将画布转换为Data URL
-        const thumbnailDataUrl = canvas.toDataURL("image/jpeg", 0.8);
+        const thumbnailDataUrl = canvas.toDataURL("image/jpeg");
         resolved = true;
         resolve(thumbnailDataUrl);
       } catch (error) {
