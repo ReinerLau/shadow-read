@@ -140,28 +140,28 @@ function HomePage() {
           </div>
         )}
       >
-        {/* 视频缩略图 */}
-        {isLoadingThumbnail ? (
-          <div className="mb-4 flex justify-center py-8">
-            <Spin />
-          </div>
-        ) : (
-          thumbnail && (
-            <div className="mb-4 flex justify-center">
+        <div className="flex flex-col gap-4">
+          {/* 视频缩略图 */}
+          {isLoadingThumbnail ? (
+            <div className="mb-4 flex justify-center py-8">
+              <Spin />
+            </div>
+          ) : (
+            thumbnail && (
               <img
                 src={thumbnail}
                 alt="视频缩略图"
-                className="max-w-full h-auto max-h-60 rounded"
+                className="w-full h-auto rounded"
               />
-            </div>
-          )
-        )}
-        {/* 视频名称输入框 */}
-        <Input
-          placeholder="请输入视频名称"
-          value={videoName}
-          onChange={(e) => setVideoName(e.target.value)}
-        />
+            )
+          )}
+          {/* 视频名称输入框 */}
+          <Input
+            placeholder="请输入视频名称"
+            value={videoName}
+            onChange={(e) => setVideoName(e.target.value)}
+          />
+        </div>
       </Modal>
     </div>
   );
