@@ -33,6 +33,7 @@ export async function extractVideoThumbnail(file: File): Promise<string> {
     };
 
     video.src = url;
+    // 预加载视频数据, 触发 onloadeddata 事件
     video.preload = "auto";
   });
 }
