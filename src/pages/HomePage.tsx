@@ -9,7 +9,7 @@ function HomePage() {
    */
   const handleImportVideo = async () => {
     try {
-      // 使用 File System Access API 打开文件选择器
+      // 使用 File System Access API 打开文件选择器, 选择文件后得到文件句柄
       const [handle] = await window.showOpenFilePicker({
         // 只允许选择 mp4 视频文件
         types: [
@@ -21,6 +21,7 @@ function HomePage() {
           },
         ],
       });
+      // 获取文件对象
       const file = await handle.getFile();
       void file; // 确保文件被正确使用
     } catch (error) {
