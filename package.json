@@ -21,6 +21,7 @@
     "@iconify-json/mdi": "^1.2.3",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
+    "@types/wicg-file-system-access": "^2023.10.7",
     "@unocss/preset-icons": "^66.5.2",
     "@unocss/preset-wind4": "^66.5.2",
     "@vite-pwa/assets-generator": "^1.0.1",
