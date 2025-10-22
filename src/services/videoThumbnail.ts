@@ -43,13 +43,6 @@ export async function extractVideoThumbnail(file: File): Promise<string> {
       }
     };
 
-    video.onerror = () => {
-      if (!resolved) {
-        resolved = true;
-        reject(new Error("视频加载失败"));
-      }
-    };
-
     // 创建文件的临时URL并加载视频
     const url = URL.createObjectURL(file);
     video.src = url;
