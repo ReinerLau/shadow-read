@@ -25,13 +25,10 @@ async function getDB(): Promise<IDBPDatabase<MediaDB>> {
     upgrade(db) {
       // 创建视频存储对象仓库
       if (!db.objectStoreNames.contains("videos")) {
-        const videoStore = db.createObjectStore("videos", {
+        db.createObjectStore("videos", {
           keyPath: "id",
           autoIncrement: true,
         });
-
-        // 创建索引用于搜索
-        videoStore.createIndex("name", "name", { unique: false });
       }
     },
   });
@@ -67,9 +64,7 @@ export class MediaDatabaseService {
    * @param mediaFile - 视频文件句柄数据
    * @returns Promise<number> 返回保存后的视频文件句柄ID
    */
-  static async saveVideo(
-    mediaFile: Omit<MediaFile, "id">
-  ): Promise<number> {
+  static async saveVideo(mediaFile: Omit<MediaFile, "id">): Promise<number> {
     const db = await getDB();
     const result = await db.add("videos", mediaFile as MediaFile);
     return result as number;
