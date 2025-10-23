@@ -17,19 +17,19 @@ function HomePage() {
   /**
    * 获取所有视频
    */
-  useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        setLoading(true);
-        const allVideos = await MediaDatabaseService.getAllVideos();
-        setVideos(allVideos);
-      } catch {
-        // 错误处理
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchVideos = async () => {
+    try {
+      setLoading(true);
+      const allVideos = await MediaDatabaseService.getAllVideos();
+      setVideos(allVideos);
+    } catch {
+      // 错误处理
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchVideos();
   }, []);
 
@@ -60,7 +60,11 @@ function HomePage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {videos.map((video) => (
-              <VideoCard key={video.id} video={video} />
+              <VideoCard
+                key={video.id}
+                video={video}
+                onVideoDeleted={fetchVideos}
+              />
             ))}
           </div>
         )}
