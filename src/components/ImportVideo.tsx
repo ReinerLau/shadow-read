@@ -83,6 +83,14 @@ function ImportVideoModal() {
   };
 
   /**
+   * 处理字幕文件删除
+   */
+  const handleRemoveSubtitle = () => {
+    setSubtitleEntries([]);
+    message.info("字幕已清空");
+  };
+
+  /**
    * 处理播放视频并保存到数据库
    */
   const handlePlayVideo = async () => {
@@ -204,6 +212,7 @@ function ImportVideoModal() {
             accept=".srt"
             maxCount={1}
             beforeUpload={handleImportSubtitle}
+            onRemove={handleRemoveSubtitle}
             disabled={isParsingSubtitle}
           >
             <Button
