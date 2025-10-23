@@ -56,6 +56,10 @@ function PlayPage() {
           );
           if (subtitleData) {
             setSubtitle(subtitleData);
+          } else {
+            setError("未找到字幕文件");
+            setLoading(false);
+            return;
           }
 
           setLoading(false);

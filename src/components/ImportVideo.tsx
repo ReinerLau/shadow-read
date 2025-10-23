@@ -90,6 +90,12 @@ function ImportVideoModal() {
       return;
     }
 
+    // 字幕文件必选，如果没有字幕则不允许播放
+    if (subtitleEntries.length === 0) {
+      message.error("字幕文件必选，请先导入字幕");
+      return;
+    }
+
     try {
       setIsSaving(true);
       // 保存视频文件句柄到数据库
@@ -101,13 +107,11 @@ function ImportVideoModal() {
       });
 
       // 如果有字幕，保存字幕到另一个对象存储
-      if (subtitleEntries.length > 0) {
-        await MediaDatabaseService.saveSubtitle({
-          videoId: mediaId,
-          entries: subtitleEntries,
-          createdAt: Date.now(),
-        });
-      }
+      await MediaDatabaseService.saveSubtitle({
+        videoId: mediaId,
+        entries: subtitleEntries,
+        createdAt: Date.now(),
+      });
 
       // 关闭模态框
       setIsModalOpen(false);
@@ -160,7 +164,7 @@ function ImportVideoModal() {
               key="play"
               type="primary"
               onClick={handlePlayVideo}
-              disabled={!videoName.trim()}
+              disabled={!videoName.trim() || subtitleEntries.length === 0}
               loading={isSaving}
             >
               播放
@@ -205,11 +209,10 @@ function ImportVideoModal() {
             <Button
               icon={<div className="i-mdi-file-document text-lg" />}
               loading={isParsingSubtitle}
-              block
             >
               {subtitleEntries.length > 0
                 ? `已导入 ${subtitleEntries.length} 条字幕`
-                : "选择字幕文件（可选）"}
+                : "选择字幕文件"}
             </Button>
           </Upload>
         </div>
