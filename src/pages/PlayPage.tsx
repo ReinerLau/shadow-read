@@ -18,6 +18,7 @@ function PlayPage() {
   const [videoUrl, setVideoUrl] = useState<string>();
   const [subtitle, setSubtitle] = useState<Subtitle | null>(null);
   const [currentTime, setCurrentTime] = useState<number>(0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   /**
    * 初始化视频播放
@@ -97,6 +98,74 @@ function PlayPage() {
   }, []);
 
   /**
+   * 监听视频播放/暂停状态
+   */
+  useEffect(() => {
+    if (!videoRef.current) return;
+
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+
+    const video = videoRef.current;
+    video.addEventListener("play", handlePlay);
+    video.addEventListener("pause", handlePause);
+
+    return () => {
+      video.removeEventListener("play", handlePlay);
+      video.removeEventListener("pause", handlePause);
+    };
+  }, []);
+
+  /**
+   * 获取当前播放的字幕条目索引
+   */
+  const getCurrentSubtitleIndex = (): number => {
+    if (!subtitle) return -1;
+    return subtitle.entries.findIndex(
+      (entry) => currentTime >= entry.startTime && currentTime < entry.endTime
+    );
+  };
+
+  /**
+   * 上一句 - 跳转到上一个字幕条目的开始时间
+   */
+  const handlePreviousSubtitle = () => {
+    if (!videoRef.current || !subtitle) return;
+
+    const currentIndex = getCurrentSubtitleIndex();
+    if (currentIndex > 0) {
+      const previousEntry = subtitle.entries[currentIndex - 1];
+      videoRef.current.currentTime = previousEntry.startTime / 1000; // 转换为秒
+    }
+  };
+
+  /**
+   * 下一句 - 跳转到下一个字幕条目的开始时间
+   */
+  const handleNextSubtitle = () => {
+    if (!videoRef.current || !subtitle) return;
+
+    const currentIndex = getCurrentSubtitleIndex();
+    if (currentIndex < subtitle.entries.length - 1) {
+      const nextEntry = subtitle.entries[currentIndex + 1];
+      videoRef.current.currentTime = nextEntry.startTime / 1000; // 转换为秒
+    }
+  };
+
+  /**
+   * 播放/暂停切换
+   */
+  const handleTogglePlayPause = () => {
+    if (!videoRef.current) return;
+
+    if (isPlaying) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play();
+    }
+  };
+
+  /**
    * 返回首页
    */
   const handleGoBack = () => {
@@ -132,6 +201,34 @@ function PlayPage() {
           <SubtitleList subtitle={subtitle} currentTime={currentTime} />
         </div>
       )}
+
+      {/* 操作区域 */}
+      <div className="p-3  flex justify-center gap-4 bg-white">
+        <Button
+          className="flex-1"
+          type="text"
+          onClick={handlePreviousSubtitle}
+          icon={<div className="i-mdi:skip-previous text-xl" />}
+        />
+        <Button
+          className="flex-1"
+          type="text"
+          onClick={handleTogglePlayPause}
+          icon={
+            isPlaying ? (
+              <div className="i-mdi-pause text-xl" />
+            ) : (
+              <div className="i-mdi-play text-xl" />
+            )
+          }
+        />
+        <Button
+          className="flex-1"
+          type="text"
+          onClick={handleNextSubtitle}
+          icon={<div className="i-mdi:skip-next text-xl" />}
+        />
+      </div>
     </div>
   );
 }
