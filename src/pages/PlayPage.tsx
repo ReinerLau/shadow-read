@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
-import { Button, Spin } from "antd";
+import { Button } from "antd";
 import MediaDatabaseService from "../services/mediaDatabase";
 import SubtitleList from "../components/SubtitleList";
 import type { Subtitle } from "../types";
@@ -14,9 +14,8 @@ function PlayPage() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string>();
   const [subtitle, setSubtitle] = useState<Subtitle | null>(null);
   const [currentTime, setCurrentTime] = useState<number>(0);
 
@@ -24,11 +23,11 @@ function PlayPage() {
    * 初始化视频播放
    */
   useEffect(() => {
+    let url: string;
     const initializeVideo = async () => {
       try {
         if (!mediaId) {
           setError("未找到视频ID");
-          setLoading(false);
           return;
         }
 
@@ -37,7 +36,6 @@ function PlayPage() {
 
         if (!media) {
           setError("视频文件不存在");
-          setLoading(false);
           return;
         }
 
@@ -45,7 +43,7 @@ function PlayPage() {
         try {
           await media.handle.requestPermission({ mode: "read" });
           const file = await media.handle.getFile();
-          const url = URL.createObjectURL(file);
+          url = URL.createObjectURL(file);
           setVideoUrl(url);
 
           // 更新最后播放时间
@@ -59,18 +57,13 @@ function PlayPage() {
             setSubtitle(subtitleData);
           } else {
             setError("未找到字幕文件");
-            setLoading(false);
             return;
           }
-
-          setLoading(false);
         } catch {
           setError("无法访问视频文件，可能已被删除或权限已更改");
-          setLoading(false);
         }
       } catch {
         setError("加载视频失败");
-        setLoading(false);
       }
     };
 
@@ -78,12 +71,9 @@ function PlayPage() {
 
     // 清理 URL 对象
     return () => {
-      setVideoUrl((prevUrl) => {
-        if (prevUrl) {
-          URL.revokeObjectURL(prevUrl);
-        }
-        return null;
-      });
+      if (url) {
+        URL.revokeObjectURL(url);
+      }
     };
   }, [mediaId]);
 
@@ -113,19 +103,10 @@ function PlayPage() {
     navigate("/");
   };
 
-  if (loading) {
-    return (
-      <div className="h-dvh flex items-center justify-center">
-        <Spin size="large" tip="加载视频中..." />
-      </div>
-    );
-  }
-
-  if (error || !videoUrl) {
+  if (error) {
     return (
       <div className="h-dvh flex flex-col items-center justify-center gap-4">
         <div className="text-lg text-red-600">{error || "无法播放视频"}</div>
-        <Button onClick={handleGoBack}>返回首页</Button>
       </div>
     );
   }
@@ -143,7 +124,13 @@ function PlayPage() {
       </div>
 
       {/* 视频播放器 */}
-      <video ref={videoRef} src={videoUrl} autoPlay controls />
+      <video
+        ref={videoRef}
+        src={videoUrl}
+        autoPlay
+        controls
+        className="w-full"
+      />
 
       {/* 字幕列表显示区域 */}
       {subtitle && (
