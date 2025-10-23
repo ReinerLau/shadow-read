@@ -21,6 +21,7 @@ function PlayPage() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isMoreModalOpen, setIsMoreModalOpen] = useState<boolean>(false);
   const [playMode, setPlayMode] = useState<PlayMode>(PlayModeValues.OFF);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
 
   /**
    * 初始化视频播放
@@ -237,6 +238,15 @@ function PlayPage() {
     videoRef.current.currentTime = startTimeMs / 1000;
   };
 
+  /**
+   * 处理播放速度变化
+   */
+  const handlePlaybackSpeedChange = (speed: number) => {
+    if (!videoRef.current) return;
+    videoRef.current.playbackRate = speed;
+    setPlaybackSpeed(speed);
+  };
+
   if (error) {
     return (
       <div className="h-dvh flex flex-col items-center justify-center gap-4">
@@ -272,7 +282,7 @@ function PlayPage() {
         onCancel={handleMoreModalClose}
         footer={null}
       >
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           {/* 播放模式 */}
           <div>播放模式</div>
           <Radio.Group
@@ -293,6 +303,29 @@ function PlayPage() {
               {
                 label: "单句循环",
                 value: PlayModeValues.SINGLE_LOOP,
+              },
+            ]}
+          />
+          {/* 播放速度 */}
+          <div>播放速度</div>
+          <Radio.Group
+            block
+            value={playbackSpeed}
+            onChange={(e) => handlePlaybackSpeedChange(e.target.value)}
+            optionType="button"
+            buttonStyle="solid"
+            options={[
+              {
+                label: "0.6x",
+                value: 0.6,
+              },
+              {
+                label: "0.8x",
+                value: 0.8,
+              },
+              {
+                label: "1.0x",
+                value: 1.0,
               },
             ]}
           />
