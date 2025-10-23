@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button, Spin } from "antd";
 import MediaDatabaseService from "../services/mediaDatabase";
+import SubtitleList from "../components/SubtitleList";
 import type { Subtitle } from "../types";
 
 /**
@@ -17,7 +18,7 @@ function PlayPage() {
   const [error, setError] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [subtitle, setSubtitle] = useState<Subtitle | null>(null);
-  const [currentSubtitleText, setCurrentSubtitleText] = useState<string>("");
+  const [currentTime, setCurrentTime] = useState<number>(0);
 
   /**
    * 初始化视频播放
@@ -87,20 +88,14 @@ function PlayPage() {
   }, [mediaId]);
 
   /**
-   * 监听视频播放时间，更新字幕显示
+   * 监听视频播放时间
    */
   useEffect(() => {
-    if (!videoRef.current || !subtitle) return;
+    if (!videoRef.current) return;
 
     const handleTimeUpdate = () => {
-      const currentTime = videoRef.current!.currentTime * 1000; // 转换为毫秒
-
-      // 找到当前时间对应的字幕
-      const currentEntry = subtitle.entries.find(
-        (entry) => entry.startTime <= currentTime && currentTime < entry.endTime
-      );
-
-      setCurrentSubtitleText(currentEntry?.text || "");
+      const currentTimeMs = videoRef.current!.currentTime * 1000; // 转换为毫秒
+      setCurrentTime(currentTimeMs);
     };
 
     const video = videoRef.current;
@@ -109,7 +104,7 @@ function PlayPage() {
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
     };
-  }, [subtitle]);
+  }, []);
 
   /**
    * 返回首页
@@ -150,10 +145,10 @@ function PlayPage() {
       {/* 视频播放器 */}
       <video ref={videoRef} src={videoUrl} autoPlay controls />
 
-      {/* 字幕显示区域 */}
+      {/* 字幕列表显示区域 */}
       {subtitle && (
-        <div className="bg-black bg-opacity-70 text-white p-4 text-center min-h-16 flex items-center justify-center flex-1">
-          <div className="text-lg">{currentSubtitleText}</div>
+        <div className="flex-1 min-h-0 p-4">
+          <SubtitleList subtitle={subtitle} currentTime={currentTime} />
         </div>
       )}
     </div>

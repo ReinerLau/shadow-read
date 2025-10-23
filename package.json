@@ -15,6 +15,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router": "^7.9.1",
+    "react-window": "^2.2.1",
     "srt-parser-2": "^1.2.3"
   },
   "devDependencies": {
@@ -22,6 +23,7 @@
     "@iconify-json/mdi": "^1.2.3",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
+    "@types/react-window": "^1.8.8",
     "@types/wicg-file-system-access": "^2023.10.7",
     "@unocss/preset-icons": "^66.5.2",
     "@unocss/preset-wind4": "^66.5.2",
