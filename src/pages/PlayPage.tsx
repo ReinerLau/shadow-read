@@ -17,7 +17,7 @@ function PlayPage() {
   const [error, setError] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>();
   const [subtitle, setSubtitle] = useState<Subtitle | null>(null);
-  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState<number>(-1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   /**
@@ -82,11 +82,15 @@ function PlayPage() {
    * 监听视频播放时间
    */
   useEffect(() => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || !subtitle) return;
 
     const handleTimeUpdate = () => {
       const currentTimeMs = videoRef.current!.currentTime * 1000; // 转换为毫秒
-      setCurrentTime(currentTimeMs);
+      const index = subtitle.entries.findIndex(
+        (entry) =>
+          currentTimeMs >= entry.startTime && currentTimeMs < entry.endTime
+      );
+      setCurrentSubtitleIndex(index);
     };
 
     const video = videoRef.current;
@@ -95,7 +99,7 @@ function PlayPage() {
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
     };
-  }, []);
+  }, [subtitle]);
 
   /**
    * 监听视频播放/暂停状态
@@ -117,24 +121,13 @@ function PlayPage() {
   }, []);
 
   /**
-   * 获取当前播放的字幕条目索引
-   */
-  const getCurrentSubtitleIndex = (): number => {
-    if (!subtitle) return -1;
-    return subtitle.entries.findIndex(
-      (entry) => currentTime >= entry.startTime && currentTime < entry.endTime
-    );
-  };
-
-  /**
    * 上一句 - 跳转到上一个字幕条目的开始时间
    */
   const handlePreviousSubtitle = () => {
     if (!videoRef.current || !subtitle) return;
 
-    const currentIndex = getCurrentSubtitleIndex();
-    if (currentIndex > 0) {
-      const previousEntry = subtitle.entries[currentIndex - 1];
+    if (currentSubtitleIndex > 0) {
+      const previousEntry = subtitle.entries[currentSubtitleIndex - 1];
       videoRef.current.currentTime = previousEntry.startTime / 1000; // 转换为秒
     }
   };
@@ -145,9 +138,8 @@ function PlayPage() {
   const handleNextSubtitle = () => {
     if (!videoRef.current || !subtitle) return;
 
-    const currentIndex = getCurrentSubtitleIndex();
-    if (currentIndex < subtitle.entries.length - 1) {
-      const nextEntry = subtitle.entries[currentIndex + 1];
+    if (currentSubtitleIndex < subtitle.entries.length - 1) {
+      const nextEntry = subtitle.entries[currentSubtitleIndex + 1];
       videoRef.current.currentTime = nextEntry.startTime / 1000; // 转换为秒
     }
   };
@@ -198,7 +190,10 @@ function PlayPage() {
       {/* 字幕列表 */}
       {subtitle && (
         <div className="flex-1 min-h-0 p-4">
-          <SubtitleList subtitle={subtitle} currentTime={currentTime} />
+          <SubtitleList
+            subtitle={subtitle}
+            currentIndex={currentSubtitleIndex}
+          />
         </div>
       )}
 

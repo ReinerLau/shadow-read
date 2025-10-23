@@ -13,8 +13,8 @@ import type { Subtitle } from "../types";
 interface SubtitleListProps {
   /** 字幕数据 */
   subtitle: Subtitle;
-  /** 当前播放时间（毫秒） */
-  currentTime: number;
+  /** 当前字幕索引 */
+  currentIndex: number;
 }
 
 /**
@@ -51,7 +51,7 @@ const SubtitleRow = ({
  * 字幕列表组件 - 使用虚拟滚动显示字幕
  * 采用 react-window v2 的 List 和 useDynamicRowHeight 实现动态行高度
  */
-function SubtitleList({ subtitle, currentTime }: SubtitleListProps) {
+function SubtitleList({ subtitle, currentIndex }: SubtitleListProps) {
   const listRef = useListRef(null);
 
   /**
@@ -60,13 +60,6 @@ function SubtitleList({ subtitle, currentTime }: SubtitleListProps) {
   const rowHeight = useDynamicRowHeight({
     defaultRowHeight: 80,
   });
-
-  /**
-   * 计算当前字幕索引
-   */
-  const currentIndex = subtitle.entries.findIndex(
-    (entry) => currentTime >= entry.startTime && currentTime < entry.endTime
-  );
 
   /**
    * 滚动到当前字幕
