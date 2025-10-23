@@ -124,15 +124,9 @@ function PlayPage() {
       </div>
 
       {/* 视频播放器 */}
-      <video
-        ref={videoRef}
-        src={videoUrl}
-        autoPlay
-        controls
-        className="w-full"
-      />
+      <video ref={videoRef} src={videoUrl} autoPlay className="w-full" />
 
-      {/* 字幕列表显示区域 */}
+      {/* 字幕列表 */}
       {subtitle && (
         <div className="flex-1 min-h-0 p-4">
           <SubtitleList subtitle={subtitle} currentTime={currentTime} />
