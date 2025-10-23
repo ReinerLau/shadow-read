@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button, Spin } from "antd";
 import MediaDatabaseService from "../services/mediaDatabase";
-import type { MediaFile } from "../types";
 
 /**
  * 播放页组件
@@ -13,7 +12,6 @@ function PlayPage() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const [mediaFile, setMediaFile] = useState<MediaFile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -38,8 +36,6 @@ function PlayPage() {
           setLoading(false);
           return;
         }
-
-        setMediaFile(media);
 
         // 验证文件句柄是否仍然可用
         try {
@@ -100,32 +96,22 @@ function PlayPage() {
   }
 
   return (
-    <div className="h-dvh flex flex-col bg-black">
+    <div className="h-dvh flex flex-col bg-gray-50">
       {/* 控制栏 */}
-      <div className="p-4 flex justify-between items-center bg-black bg-opacity-50">
+      <div className="p-3">
         <Button
           type="text"
           shape="circle"
           onClick={handleGoBack}
-          className="text-white"
           icon={<div className="i-mdi-arrow-left text-xl" />}
         />
-        <div className="text-white text-center flex-1 truncate">
-          {mediaFile?.name}
-        </div>
-        <div className="w-10" />
       </div>
 
       {/* 视频播放器 */}
-      <div className="flex-1 flex items-center justify-center">
-        <video
-          ref={videoRef}
-          src={videoUrl}
-          controls
-          autoPlay
-          className="max-w-full max-h-full"
-        />
-      </div>
+      <video ref={videoRef} src={videoUrl} autoPlay />
+      {/* 字幕列表 */}
+      <div className="flex-1"></div>
+      {/* 操作区域 */}
     </div>
   );
 }
