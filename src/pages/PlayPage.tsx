@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button, Modal, Radio } from "antd";
 import MediaDatabaseService from "../services/mediaDatabase";
@@ -18,6 +18,8 @@ function PlayPage() {
   const [videoUrl, setVideoUrl] = useState<string>();
   const [subtitle, setSubtitle] = useState<Subtitle | null>(null);
   const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState<number>(-1);
+  const [lastValidSubtitleIndex, setLastValidSubtitleIndex] =
+    useState<number>(-1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isMoreModalOpen, setIsMoreModalOpen] = useState<boolean>(false);
   const [playMode, setPlayMode] = useState<PlayMode>(PlayModeValues.OFF);
@@ -162,6 +164,11 @@ function PlayPage() {
       }
 
       setCurrentSubtitleIndex(index);
+
+      // 更新最后一个有效的字幕索引（非 -1）
+      if (index !== -1) {
+        setLastValidSubtitleIndex(index);
+      }
     };
 
     const video = videoRef.current;
@@ -207,21 +214,36 @@ function PlayPage() {
   }, [playMode, currentSubtitleIndex, subtitle]);
 
   /**
+   * 获取有效的字幕索引
+   * 如果当前索引为 -1（窗口期），返回最后一个有效的索引
+   * @returns 有效的字幕索引
+   */
+  const getEffectiveSubtitleIndex = useCallback(() => {
+    return currentSubtitleIndex === -1
+      ? lastValidSubtitleIndex
+      : currentSubtitleIndex;
+  }, [currentSubtitleIndex, lastValidSubtitleIndex]);
+
+  /**
    * 离开页面时保存当前字幕索引
    */
   useEffect(() => {
     const saveSubtitleIndex = async () => {
-      if (mediaId && currentSubtitleIndex >= 0) {
+      const effectiveIndex = getEffectiveSubtitleIndex();
+
+      if (mediaId && effectiveIndex >= 0) {
         await MediaDatabaseService.updateVideoSubtitleIndex(
           Number(mediaId),
-          currentSubtitleIndex
+          effectiveIndex
         );
       }
     };
 
     // 监听页面卸载事件
     const handleBeforeUnload = () => {
-      if (mediaId && currentSubtitleIndex >= 0) {
+      const effectiveIndex = getEffectiveSubtitleIndex();
+
+      if (mediaId && effectiveIndex >= 0) {
         // 使用 sendBeacon 或同步方式保存，但由于 IndexedDB 是异步的，
         // 我们在组件卸载时保存
         saveSubtitleIndex();
@@ -235,7 +257,7 @@ function PlayPage() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       saveSubtitleIndex();
     };
-  }, [mediaId, currentSubtitleIndex]);
+  }, [mediaId, getEffectiveSubtitleIndex]);
 
   /**
    * 上一句 - 跳转到上一个字幕条目的开始时间
@@ -243,10 +265,13 @@ function PlayPage() {
   const handlePreviousSubtitle = () => {
     if (!videoRef.current || !subtitle) return;
 
-    if (currentSubtitleIndex > 0) {
-      const previousEntry = subtitle.entries[currentSubtitleIndex - 1];
+    const effectiveIndex = getEffectiveSubtitleIndex();
+
+    if (effectiveIndex > 0) {
+      const previousEntry = subtitle.entries[effectiveIndex - 1];
       videoRef.current.currentTime = previousEntry.startTime / 1000; // 转换为秒
-      setCurrentSubtitleIndex(currentSubtitleIndex - 1);
+      setCurrentSubtitleIndex(effectiveIndex - 1);
+      setLastValidSubtitleIndex(effectiveIndex - 1);
       videoRef.current.play();
     }
   };
@@ -257,10 +282,13 @@ function PlayPage() {
   const handleNextSubtitle = () => {
     if (!videoRef.current || !subtitle) return;
 
-    if (currentSubtitleIndex < subtitle.entries.length - 1) {
-      const nextEntry = subtitle.entries[currentSubtitleIndex + 1];
+    const effectiveIndex = getEffectiveSubtitleIndex();
+
+    if (effectiveIndex < subtitle.entries.length - 1) {
+      const nextEntry = subtitle.entries[effectiveIndex + 1];
       videoRef.current.currentTime = nextEntry.startTime / 1000; // 转换为秒
-      setCurrentSubtitleIndex(currentSubtitleIndex + 1);
+      setCurrentSubtitleIndex(effectiveIndex + 1);
+      setLastValidSubtitleIndex(effectiveIndex + 1);
       videoRef.current.play();
     }
   };
