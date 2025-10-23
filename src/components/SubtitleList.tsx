@@ -86,10 +86,10 @@ function SubtitleList({
     if (!subtitle || !listRef.current) return;
 
     if (currentIndex !== -1) {
-      listRef.current.scrollToRow({
+      listRef.current?.scrollToRow({
         index: currentIndex,
         align: "center",
-        behavior: "smooth",
+        // behavior: "smooth",
       });
     }
   }, [currentIndex, subtitle, listRef]);
