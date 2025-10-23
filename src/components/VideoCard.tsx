@@ -47,6 +47,14 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoDeleted }) => {
   const handleDelete = async () => {
     setDeleteLoading(true);
     try {
+      // 删除关联字幕
+      const subtitle = await MediaDatabaseService.getSubtitleByVideoId(
+        video.id
+      );
+      if (subtitle) {
+        await MediaDatabaseService.deleteSubtitle(subtitle.id);
+      }
+      // 删除视频
       await MediaDatabaseService.deleteVideo(video.id);
       setDrawerOpen(false);
       onVideoDeleted?.();
