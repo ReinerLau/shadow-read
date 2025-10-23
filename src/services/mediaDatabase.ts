@@ -1,11 +1,11 @@
 import { openDB, type IDBPDatabase } from "idb";
-import type { MediaFile, MediaDB } from "../types";
+import type { MediaFile, MediaDB, Subtitle } from "../types";
 
 /**
  * 数据库名称和版本
  */
 const DB_NAME = "media";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 /**
  * 数据库实例缓存
@@ -29,6 +29,15 @@ async function getDB(): Promise<IDBPDatabase<MediaDB>> {
           keyPath: "id",
           autoIncrement: true,
         });
+      }
+      // 创建字幕存储对象仓库
+      if (!db.objectStoreNames.contains("subtitles")) {
+        const subtitlesStore = db.createObjectStore("subtitles", {
+          keyPath: "id",
+          autoIncrement: true,
+        });
+        // 添加 videoId 索引以快速查询特定视频的字幕
+        subtitlesStore.createIndex("videoId", "videoId", { unique: true });
       }
     },
   });
@@ -122,6 +131,40 @@ export class MediaDatabaseService {
       video.lastPlayedTime = Date.now();
       await db.put("videos", video);
     }
+  }
+
+  /**
+   * 保存字幕数据
+   * @param subtitle - 字幕数据
+   * @returns Promise<number> 返回保存后的字幕ID
+   */
+  static async saveSubtitle(subtitle: Omit<Subtitle, "id">): Promise<number> {
+    const db = await getDB();
+    const result = await db.add("subtitles", subtitle as Subtitle);
+    return result as number;
+  }
+
+  /**
+   * 根据视频ID获取字幕
+   * @param videoId - 视频ID
+   * @returns Promise<Subtitle | undefined>
+   */
+  static async getSubtitleByVideoId(
+    videoId: number
+  ): Promise<Subtitle | undefined> {
+    const db = await getDB();
+    const index = db.transaction("subtitles").store.index("videoId");
+    return await index.get(videoId);
+  }
+
+  /**
+   * 删除字幕
+   * @param id - 字幕ID
+   * @returns Promise<void>
+   */
+  static async deleteSubtitle(id: number): Promise<void> {
+    const db = await getDB();
+    await db.delete("subtitles", id);
   }
 
   /**

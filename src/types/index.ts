@@ -90,8 +90,8 @@ export interface MediaDB extends DBSchema {
   };
   subtitles: {
     key: number;
-    value: MediaFile;
-    indexes: { name: string };
+    value: Subtitle;
+    indexes: { videoId: number };
   };
 }
 
@@ -182,4 +182,32 @@ export interface PlayerProps {
   onEditCards: (player: PlayerType) => void;
   /** 设置首发玩家回调 */
   onSetFirstPlayer?: (player: PlayerType) => void;
+}
+
+/**
+ * 字幕条目类型定义
+ */
+export interface SubtitleEntry {
+  /** 字幕条目索引 */
+  index: number;
+  /** 开始时间（毫秒） */
+  startTime: number;
+  /** 结束时间（毫秒） */
+  endTime: number;
+  /** 字幕文本 */
+  text: string;
+}
+
+/**
+ * 字幕数据类型定义
+ */
+export interface Subtitle {
+  /** 字幕条目ID */
+  id: number;
+  /** 关联的视频ID */
+  videoId: number;
+  /** 字幕条目数组 */
+  entries: SubtitleEntry[];
+  /** 创建时间戳 */
+  createdAt: number;
 }

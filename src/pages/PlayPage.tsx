@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button, Spin } from "antd";
 import MediaDatabaseService from "../services/mediaDatabase";
+import type { Subtitle } from "../types";
 
 /**
  * 播放页组件
@@ -15,6 +16,8 @@ function PlayPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [subtitle, setSubtitle] = useState<Subtitle | null>(null);
+  const [currentSubtitleText, setCurrentSubtitleText] = useState<string>("");
 
   /**
    * 初始化视频播放
@@ -47,6 +50,14 @@ function PlayPage() {
           // 更新最后播放时间
           await MediaDatabaseService.updateVideoPlayedTime(media.id);
 
+          // 获取关联的字幕
+          const subtitleData = await MediaDatabaseService.getSubtitleByVideoId(
+            Number(mediaId)
+          );
+          if (subtitleData) {
+            setSubtitle(subtitleData);
+          }
+
           setLoading(false);
         } catch {
           setError("无法访问视频文件，可能已被删除或权限已更改");
@@ -70,6 +81,31 @@ function PlayPage() {
       });
     };
   }, [mediaId]);
+
+  /**
+   * 监听视频播放时间，更新字幕显示
+   */
+  useEffect(() => {
+    if (!videoRef.current || !subtitle) return;
+
+    const handleTimeUpdate = () => {
+      const currentTime = videoRef.current!.currentTime * 1000; // 转换为毫秒
+
+      // 找到当前时间对应的字幕
+      const currentEntry = subtitle.entries.find(
+        (entry) => entry.startTime <= currentTime && currentTime < entry.endTime
+      );
+
+      setCurrentSubtitleText(currentEntry?.text || "");
+    };
+
+    const video = videoRef.current;
+    video.addEventListener("timeupdate", handleTimeUpdate);
+
+    return () => {
+      video.removeEventListener("timeupdate", handleTimeUpdate);
+    };
+  }, [subtitle]);
 
   /**
    * 返回首页
@@ -108,10 +144,14 @@ function PlayPage() {
       </div>
 
       {/* 视频播放器 */}
-      <video ref={videoRef} src={videoUrl} autoPlay />
-      {/* 字幕列表 */}
-      <div className="flex-1"></div>
-      {/* 操作区域 */}
+      <video ref={videoRef} src={videoUrl} autoPlay controls />
+
+      {/* 字幕显示区域 */}
+      {subtitle && (
+        <div className="bg-black bg-opacity-70 text-white p-4 text-center min-h-16 flex items-center justify-center flex-1">
+          <div className="text-lg">{currentSubtitleText}</div>
+        </div>
+      )}
     </div>
   );
 }

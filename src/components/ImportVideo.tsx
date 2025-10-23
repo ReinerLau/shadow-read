@@ -1,8 +1,10 @@
-import { Button, Modal, Input, Spin } from "antd";
+import { Button, Modal, Input, Spin, Upload, message } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import MediaDatabaseService from "../services/mediaDatabase";
+import SubtitleParserService from "../services/subtitleParser";
 import { extractVideoMetadata } from "../services/videoData";
+import type { SubtitleEntry } from "../types";
 
 /**
  * 视频导入模态框组件
@@ -17,6 +19,8 @@ function ImportVideoModal() {
   const [duration, setDuration] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(false);
+  const [subtitleEntries, setSubtitleEntries] = useState<SubtitleEntry[]>([]);
+  const [isParsingSubtitle, setIsParsingSubtitle] = useState(false);
 
   /**
    * 处理视频文件导入
@@ -61,6 +65,24 @@ function ImportVideoModal() {
   };
 
   /**
+   * 处理字幕文件导入
+   */
+  const handleImportSubtitle = async (file: File) => {
+    try {
+      setIsParsingSubtitle(true);
+      const entries = await SubtitleParserService.parseSrtFile(file);
+      setSubtitleEntries(entries);
+      message.success(`字幕导入成功，共 ${entries.length} 条`);
+      return false; // 阻止默认的 Upload 行为
+    } catch {
+      message.error("字幕导入失败，请检查文件格式");
+      return false;
+    } finally {
+      setIsParsingSubtitle(false);
+    }
+  };
+
+  /**
    * 处理播放视频并保存到数据库
    */
   const handlePlayVideo = async () => {
@@ -78,12 +100,22 @@ function ImportVideoModal() {
         duration,
       });
 
+      // 如果有字幕，保存字幕到另一个对象存储
+      if (subtitleEntries.length > 0) {
+        await MediaDatabaseService.saveSubtitle({
+          videoId: mediaId,
+          entries: subtitleEntries,
+          createdAt: Date.now(),
+        });
+      }
+
       // 关闭模态框
       setIsModalOpen(false);
       setVideoName("");
       setSelectedHandle(null);
       setThumbnail(undefined);
       setDuration(undefined);
+      setSubtitleEntries([]);
 
       // 跳转到播放页并播放视频
       navigate(`/play/${mediaId}`);
@@ -104,6 +136,7 @@ function ImportVideoModal() {
     setSelectedHandle(null);
     setThumbnail(undefined);
     setDuration(undefined);
+    setSubtitleEntries([]);
   };
 
   return (
@@ -163,6 +196,22 @@ function ImportVideoModal() {
             onChange={(e) => setVideoName(e.target.value)}
           />
           {/* 导入字幕 */}
+          <Upload
+            accept=".srt"
+            maxCount={1}
+            beforeUpload={handleImportSubtitle}
+            disabled={isParsingSubtitle}
+          >
+            <Button
+              icon={<div className="i-mdi-file-document text-lg" />}
+              loading={isParsingSubtitle}
+              block
+            >
+              {subtitleEntries.length > 0
+                ? `已导入 ${subtitleEntries.length} 条字幕`
+                : "选择字幕文件（可选）"}
+            </Button>
+          </Upload>
         </div>
       </Modal>
     </>
