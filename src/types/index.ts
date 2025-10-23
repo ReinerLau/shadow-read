@@ -77,6 +77,8 @@ export interface MediaFile {
   duration?: string;
   /** 最后播放时间（时间戳毫秒） */
   lastPlayedTime?: number;
+  /** 最后播放的字幕索引 */
+  lastSubtitleIndex?: number;
 }
 
 /**

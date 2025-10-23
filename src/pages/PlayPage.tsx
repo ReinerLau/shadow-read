@@ -22,6 +22,9 @@ function PlayPage() {
   const [isMoreModalOpen, setIsMoreModalOpen] = useState<boolean>(false);
   const [playMode, setPlayMode] = useState<PlayMode>(PlayModeValues.OFF);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
+  const [savedSubtitleIndex, setSavedSubtitleIndex] = useState<number | null>(
+    null
+  );
 
   /**
    * 初始化视频播放
@@ -59,6 +62,15 @@ function PlayPage() {
           );
           if (subtitleData) {
             setSubtitle(subtitleData);
+
+            // 如果有保存的字幕索引，保存起来等视频加载完成后跳转
+            if (
+              media.lastSubtitleIndex !== undefined &&
+              media.lastSubtitleIndex >= 0 &&
+              media.lastSubtitleIndex < subtitleData.entries.length
+            ) {
+              setSavedSubtitleIndex(media.lastSubtitleIndex);
+            }
           } else {
             setError("未找到字幕文件");
             return;
@@ -80,6 +92,33 @@ function PlayPage() {
       }
     };
   }, [mediaId]);
+
+  /**
+   * 视频加载完成后跳转到保存的字幕索引
+   */
+  useEffect(() => {
+    if (!videoRef.current || !subtitle || savedSubtitleIndex === null) return;
+
+    const handleLoadedMetadata = () => {
+      if (videoRef.current && subtitle && savedSubtitleIndex !== null) {
+        const savedEntry = subtitle.entries[savedSubtitleIndex];
+        videoRef.current.currentTime = savedEntry.startTime / 1000;
+        setSavedSubtitleIndex(null); // 清除保存的索引，避免重复跳转
+      }
+    };
+
+    const video = videoRef.current;
+    video.addEventListener("loadedmetadata", handleLoadedMetadata);
+
+    // 如果视频已经加载完成，直接跳转
+    if (video.readyState >= 1) {
+      handleLoadedMetadata();
+    }
+
+    return () => {
+      video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+    };
+  }, [subtitle, savedSubtitleIndex]);
 
   /**
    * 监听视频播放时间
@@ -166,6 +205,37 @@ function PlayPage() {
       video.removeEventListener("pause", handlePause);
     };
   }, [playMode, currentSubtitleIndex, subtitle]);
+
+  /**
+   * 离开页面时保存当前字幕索引
+   */
+  useEffect(() => {
+    const saveSubtitleIndex = async () => {
+      if (mediaId && currentSubtitleIndex >= 0) {
+        await MediaDatabaseService.updateVideoSubtitleIndex(
+          Number(mediaId),
+          currentSubtitleIndex
+        );
+      }
+    };
+
+    // 监听页面卸载事件
+    const handleBeforeUnload = () => {
+      if (mediaId && currentSubtitleIndex >= 0) {
+        // 使用 sendBeacon 或同步方式保存，但由于 IndexedDB 是异步的，
+        // 我们在组件卸载时保存
+        saveSubtitleIndex();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // 组件卸载时保存
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      saveSubtitleIndex();
+    };
+  }, [mediaId, currentSubtitleIndex]);
 
   /**
    * 上一句 - 跳转到上一个字幕条目的开始时间

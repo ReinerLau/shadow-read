@@ -5,7 +5,7 @@ import type { MediaFile, MediaDB, Subtitle } from "../types";
  * 数据库名称和版本
  */
 const DB_NAME = "media";
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
 /**
  * 数据库实例缓存
@@ -174,6 +174,24 @@ export class MediaDatabaseService {
   static async initializeDatabase(): Promise<void> {
     // 仅初始化数据库连接，不导入任何默认数据
     await getDB();
+  }
+
+  /**
+   * 更新视频的最后字幕索引
+   * @param id - 视频文件句柄ID
+   * @param subtitleIndex - 字幕索引
+   * @returns Promise<void>
+   */
+  static async updateVideoSubtitleIndex(
+    id: number,
+    subtitleIndex: number
+  ): Promise<void> {
+    const db = await getDB();
+    const video = await db.get("videos", id);
+    if (video) {
+      video.lastSubtitleIndex = subtitleIndex;
+      await db.put("videos", video);
+    }
   }
 }
 
