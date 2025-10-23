@@ -164,6 +164,15 @@ function PlayPage() {
     navigate("/");
   };
 
+  /**
+   * 处理字幕双击事件 - 跳转到对应时间
+   */
+  const handleSubtitleClick = (startTimeMs: number) => {
+    if (!videoRef.current) return;
+    // 将毫秒转换为秒
+    videoRef.current.currentTime = startTimeMs / 1000;
+  };
+
   if (error) {
     return (
       <div className="h-dvh flex flex-col items-center justify-center gap-4">
@@ -193,6 +202,7 @@ function PlayPage() {
           <SubtitleList
             subtitle={subtitle}
             currentIndex={currentSubtitleIndex}
+            onSubtitleClick={handleSubtitleClick}
           />
         </div>
       )}

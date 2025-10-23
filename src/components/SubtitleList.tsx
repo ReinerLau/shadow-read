@@ -15,6 +15,8 @@ interface SubtitleListProps {
   subtitle: Subtitle;
   /** 当前字幕索引 */
   currentIndex: number;
+  /** 字幕点击回调 - 用于双击跳转到对应时间 */
+  onSubtitleClick?: (startTime: number) => void;
 }
 
 /**
@@ -25,19 +27,31 @@ const SubtitleRow = ({
   style,
   subtitle,
   currentIndex,
+  onSubtitleClick,
 }: RowComponentProps<{
   subtitle: Subtitle;
   currentIndex: number;
+  onSubtitleClick?: (startTime: number) => void;
 }>) => {
   const entry = subtitle.entries[index];
   const isCurrent = index === currentIndex;
 
+  /**
+   * 处理点击事件 - 跳转到字幕对应时间
+   */
+  const handleClick = () => {
+    if (onSubtitleClick) {
+      onSubtitleClick(entry.startTime);
+    }
+  };
+
   return (
     <div style={style}>
       <div
-        className={`mb-2 shadow-sm rounded transition-colors duration-200 ${
+        className={`mb-2 shadow-sm rounded transition-colors duration-200 cursor-pointer ${
           isCurrent ? "bg-blue-100 border-l-4 border-blue-500" : "bg-white"
         }`}
+        onClick={handleClick}
       >
         <div className="text-sm break-words whitespace-pre-wrap p-4">
           {entry.text}
@@ -51,7 +65,11 @@ const SubtitleRow = ({
  * 字幕列表组件 - 使用虚拟滚动显示字幕
  * 采用 react-window v2 的 List 和 useDynamicRowHeight 实现动态行高度
  */
-function SubtitleList({ subtitle, currentIndex }: SubtitleListProps) {
+function SubtitleList({
+  subtitle,
+  currentIndex,
+  onSubtitleClick,
+}: SubtitleListProps) {
   const listRef = useListRef(null);
 
   /**
@@ -82,7 +100,7 @@ function SubtitleList({ subtitle, currentIndex }: SubtitleListProps) {
       rowCount={subtitle.entries.length}
       rowHeight={rowHeight}
       rowComponent={SubtitleRow}
-      rowProps={{ subtitle, currentIndex }}
+      rowProps={{ subtitle, currentIndex, onSubtitleClick }}
     />
   );
 }
