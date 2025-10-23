@@ -107,6 +107,20 @@ function PlayPage() {
         }
       }
 
+      // 单句循环模式：检查当前字幕是否已播放完毕
+      if (
+        playMode === PlayModeValues.SINGLE_LOOP &&
+        currentSubtitleIndex !== -1
+      ) {
+        const currentEntry = subtitle.entries[currentSubtitleIndex];
+        // 如果当前时间超过了当前字幕的结束时间，跳回到字幕开始位置继续播放
+        if (currentTimeMs >= currentEntry.endTime) {
+          videoRef.current!.currentTime = currentEntry.startTime / 1000;
+          // 不改变 currentSubtitleIndex，保持在当前字幕
+          return;
+        }
+      }
+
       setCurrentSubtitleIndex(index);
     };
 
