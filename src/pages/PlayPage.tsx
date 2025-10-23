@@ -105,6 +105,8 @@ function PlayPage() {
       if (videoRef.current && subtitle && savedSubtitleIndex !== null) {
         const savedEntry = subtitle.entries[savedSubtitleIndex];
         videoRef.current.currentTime = savedEntry.startTime / 1000;
+        setCurrentSubtitleIndex(savedSubtitleIndex);
+        setLastValidSubtitleIndex(savedSubtitleIndex);
         setSavedSubtitleIndex(null); // 清除保存的索引，避免重复跳转
       }
     };
