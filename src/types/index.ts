@@ -211,3 +211,20 @@ export interface Subtitle {
   /** 创建时间戳 */
   createdAt: number;
 }
+
+/**
+ * 播放模式常量定义
+ */
+export const PlayModeValues = {
+  /** 关闭 */
+  OFF: "off",
+  /** 单句暂停 */
+  SINGLE_PAUSE: "single-pause",
+  /** 单句循环 */
+  SINGLE_LOOP: "single-loop",
+} as const;
+
+/**
+ * 播放模式类型定义
+ */
+export type PlayMode = (typeof PlayModeValues)[keyof typeof PlayModeValues];

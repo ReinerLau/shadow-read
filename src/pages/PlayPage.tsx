@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
-import { Button } from "antd";
+import { Button, Modal, Radio } from "antd";
 import MediaDatabaseService from "../services/mediaDatabase";
 import SubtitleList from "../components/SubtitleList";
-import type { Subtitle } from "../types";
+import { PlayModeValues, type Subtitle, type PlayMode } from "../types";
 
 /**
  * 播放页组件
@@ -19,6 +19,8 @@ function PlayPage() {
   const [subtitle, setSubtitle] = useState<Subtitle | null>(null);
   const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState<number>(-1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isMoreModalOpen, setIsMoreModalOpen] = useState<boolean>(false);
+  const [playMode, setPlayMode] = useState<PlayMode>(PlayModeValues.OFF);
 
   /**
    * 初始化视频播放
@@ -90,6 +92,21 @@ function PlayPage() {
         (entry) =>
           currentTimeMs >= entry.startTime && currentTimeMs < entry.endTime
       );
+
+      // 单句暂停模式：检查当前字幕是否已播放完毕
+      if (
+        playMode === PlayModeValues.SINGLE_PAUSE &&
+        currentSubtitleIndex !== -1
+      ) {
+        const currentEntry = subtitle.entries[currentSubtitleIndex];
+        // 如果当前时间超过了当前字幕的结束时间，立即暂停
+        if (currentTimeMs >= currentEntry.endTime) {
+          videoRef.current!.pause();
+          // 不改变 currentSubtitleIndex，保持在当前字幕
+          return;
+        }
+      }
+
       setCurrentSubtitleIndex(index);
     };
 
@@ -99,7 +116,7 @@ function PlayPage() {
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
     };
-  }, [subtitle]);
+  }, [subtitle, playMode, currentSubtitleIndex]);
 
   /**
    * 监听视频播放/暂停状态
@@ -107,7 +124,22 @@ function PlayPage() {
   useEffect(() => {
     if (!videoRef.current) return;
 
-    const handlePlay = () => setIsPlaying(true);
+    const handlePlay = () => {
+      setIsPlaying(true);
+      // 单句暂停模式：播放时检查是否需要跳回到当前字幕的开始位置
+      if (
+        playMode === PlayModeValues.SINGLE_PAUSE &&
+        currentSubtitleIndex !== -1 &&
+        subtitle
+      ) {
+        const currentTimeMs = videoRef.current!.currentTime * 1000;
+        const currentEntry = subtitle.entries[currentSubtitleIndex];
+        // 如果当前时间超过了当前字幕的结束时间，跳回到字幕开始位置
+        if (currentTimeMs >= currentEntry.endTime) {
+          videoRef.current!.currentTime = currentEntry.startTime / 1000;
+        }
+      }
+    };
     const handlePause = () => setIsPlaying(false);
 
     const video = videoRef.current;
@@ -118,7 +150,7 @@ function PlayPage() {
       video.removeEventListener("play", handlePlay);
       video.removeEventListener("pause", handlePause);
     };
-  }, []);
+  }, [playMode, currentSubtitleIndex, subtitle]);
 
   /**
    * 上一句 - 跳转到上一个字幕条目的开始时间
@@ -129,6 +161,8 @@ function PlayPage() {
     if (currentSubtitleIndex > 0) {
       const previousEntry = subtitle.entries[currentSubtitleIndex - 1];
       videoRef.current.currentTime = previousEntry.startTime / 1000; // 转换为秒
+      setCurrentSubtitleIndex(currentSubtitleIndex - 1);
+      videoRef.current.play();
     }
   };
 
@@ -141,6 +175,8 @@ function PlayPage() {
     if (currentSubtitleIndex < subtitle.entries.length - 1) {
       const nextEntry = subtitle.entries[currentSubtitleIndex + 1];
       videoRef.current.currentTime = nextEntry.startTime / 1000; // 转换为秒
+      setCurrentSubtitleIndex(currentSubtitleIndex + 1);
+      videoRef.current.play();
     }
   };
 
@@ -165,6 +201,20 @@ function PlayPage() {
   };
 
   /**
+   * 处理更多按钮点击
+   */
+  const handleMoreClick = () => {
+    setIsMoreModalOpen(true);
+  };
+
+  /**
+   * 处理更多弹窗关闭
+   */
+  const handleMoreModalClose = () => {
+    setIsMoreModalOpen(false);
+  };
+
+  /**
    * 处理字幕双击事件 - 跳转到对应时间
    */
   const handleSubtitleClick = (startTimeMs: number) => {
@@ -184,14 +234,56 @@ function PlayPage() {
   return (
     <div className="h-dvh flex flex-col bg-gray-50">
       {/* 控制栏 */}
-      <div className="p-3">
+      <div className="p-3 flex justify-between items-center">
+        {/* 返回 */}
         <Button
           type="text"
           shape="circle"
           onClick={handleGoBack}
           icon={<div className="i-mdi-arrow-left text-xl" />}
         />
+        {/* 更多 */}
+        <Button
+          type="text"
+          shape="circle"
+          onClick={handleMoreClick}
+          icon={<div className="i-mdi-dots-vertical text-xl" />}
+        />
       </div>
+
+      {/* 更多弹窗 */}
+      <Modal
+        title="更多选项"
+        open={isMoreModalOpen}
+        onCancel={handleMoreModalClose}
+        footer={null}
+      >
+        <div className="space-y-2">
+          {/* 播放模式 */}
+          <div>播放模式</div>
+          <Radio.Group
+            block
+            value={playMode}
+            onChange={(e) => setPlayMode(e.target.value as PlayMode)}
+            optionType="button"
+            buttonStyle="solid"
+            options={[
+              {
+                label: "关闭",
+                value: PlayModeValues.OFF,
+              },
+              {
+                label: "单句暂停",
+                value: PlayModeValues.SINGLE_PAUSE,
+              },
+              {
+                label: "单句循环",
+                value: PlayModeValues.SINGLE_LOOP,
+              },
+            ]}
+          />
+        </div>
+      </Modal>
 
       {/* 视频播放器 */}
       <video ref={videoRef} src={videoUrl} autoPlay className="w-full" />
