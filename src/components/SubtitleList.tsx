@@ -24,14 +24,21 @@ const SubtitleRow = ({
   index,
   style,
   subtitle,
+  currentIndex,
 }: RowComponentProps<{
   subtitle: Subtitle;
+  currentIndex: number;
 }>) => {
   const entry = subtitle.entries[index];
+  const isCurrent = index === currentIndex;
 
   return (
     <div style={style}>
-      <div className="bg-white mb-2 shadow-sm rounded">
+      <div
+        className={`mb-2 shadow-sm rounded transition-colors duration-200 ${
+          isCurrent ? "bg-blue-100 border-l-4 border-blue-500" : "bg-white"
+        }`}
+      >
         <div className="text-sm break-words whitespace-pre-wrap p-4">
           {entry.text}
         </div>
@@ -55,19 +62,26 @@ function SubtitleList({ subtitle, currentTime }: SubtitleListProps) {
   });
 
   /**
+   * 计算当前字幕索引
+   */
+  const currentIndex = subtitle.entries.findIndex(
+    (entry) => currentTime >= entry.startTime && currentTime < entry.endTime
+  );
+
+  /**
    * 滚动到当前字幕
    */
   useEffect(() => {
     if (!subtitle || !listRef.current) return;
 
-    const currentIndex = subtitle.entries.findIndex(
-      (entry) => currentTime >= entry.startTime && currentTime < entry.endTime
-    );
-
     if (currentIndex !== -1) {
-      listRef.current.scrollToRow({ index: currentIndex, align: "center" });
+      listRef.current.scrollToRow({
+        index: currentIndex,
+        align: "center",
+        behavior: "smooth",
+      });
     }
-  }, [currentTime, subtitle, listRef]);
+  }, [currentIndex, subtitle, listRef]);
 
   return (
     <List
@@ -75,7 +89,7 @@ function SubtitleList({ subtitle, currentTime }: SubtitleListProps) {
       rowCount={subtitle.entries.length}
       rowHeight={rowHeight}
       rowComponent={SubtitleRow}
-      rowProps={{ subtitle }}
+      rowProps={{ subtitle, currentIndex }}
     />
   );
 }
