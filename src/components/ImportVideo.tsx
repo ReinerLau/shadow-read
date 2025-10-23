@@ -118,10 +118,10 @@ function ImportVideoModal() {
 
       {/* 视频名称输入模态框 */}
       <Modal
-        title={"视频信息"}
+        title={"导入视频"}
         open={isModalOpen}
         onCancel={handleModalCancel}
-        footer={() => (
+        footer={
           <div className="flex justify-center">
             <Button
               key="play"
@@ -133,7 +133,7 @@ function ImportVideoModal() {
               播放
             </Button>
           </div>
-        )}
+        }
       >
         <div className="flex flex-col gap-4">
           {/* 视频缩略图 */}
@@ -162,6 +162,7 @@ function ImportVideoModal() {
             value={videoName}
             onChange={(e) => setVideoName(e.target.value)}
           />
+          {/* 导入字幕 */}
         </div>
       </Modal>
     </>
