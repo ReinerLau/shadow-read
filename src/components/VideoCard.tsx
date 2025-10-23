@@ -82,7 +82,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoDeleted }) => {
           )}
         </div>
 
-        <div className="p-3 flex">
+        <div className="p-3 flex items-center">
           {/* 视频名称 */}
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-gray-800 truncate">

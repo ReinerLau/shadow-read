@@ -36,7 +36,7 @@ function HomePage() {
   return (
     <div className="h-dvh flex flex-col bg-gray-50">
       {/* header */}
-      <div className="px-4 py-3 flex justify-between bg-white ">
+      <div className="p-3 flex justify-between bg-white ">
         {/* 搜索视频 */}
         <Button
           type="text"
