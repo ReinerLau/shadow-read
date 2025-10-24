@@ -7,6 +7,7 @@ import { PlayModeValues, type PlayMode } from "../types";
 import { useVideoInit } from "../hooks/useVideoInit";
 import { useSubtitleInit } from "../hooks/useSubtitleInit";
 import { useSubtitleJump } from "../hooks/useSubtitleJump";
+import { useVideoTimeUpdate } from "../hooks/useVideoTimeUpdate";
 
 /**
  * 播放页组件
@@ -31,30 +32,6 @@ function PlayPage() {
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
 
   /**
-   * 检查当前字幕是否播放完毕，若完毕则执行相应操作
-   * @param action - 执行的操作类型：'pause' 暂停视频，'loop' 跳回字幕开始位置
-   * @returns 是否应该停止后续处理
-   */
-  const handleSubtitleCompletion = (action: "pause" | "loop"): boolean => {
-    if (!videoRef.current || !subtitle || currentSubtitleIndex === -1) {
-      return false;
-    }
-
-    const currentTimeMs = videoRef.current.currentTime * 1000;
-    const currentEntry = subtitle.entries[currentSubtitleIndex];
-
-    if (currentTimeMs >= currentEntry.endTime) {
-      if (action === "pause") {
-        videoRef.current.pause();
-      } else if (action === "loop") {
-        videoRef.current.currentTime = currentEntry.startTime / 1000;
-      }
-      return true;
-    }
-    return false;
-  };
-
-  /**
    * 合并视频和字幕初始化错误
    */
   useEffect(() => {
@@ -76,56 +53,15 @@ function PlayPage() {
   );
 
   /**
-   * 监听视频播放时间
+   * 监听视频播放时间并同步字幕索引
    */
-  useEffect(() => {
-    if (!videoRef.current || !subtitle) return;
-
-    const handleTimeUpdate = () => {
-      const currentTimeMs = videoRef.current!.currentTime * 1000; // 转换为毫秒
-      const index = subtitle.entries.findIndex(
-        (entry) =>
-          currentTimeMs >= entry.startTime && currentTimeMs < entry.endTime
-      );
-
-      // 单句暂停模式：检查当前字幕是否已播放完毕
-      if (
-        playMode === PlayModeValues.SINGLE_PAUSE &&
-        currentSubtitleIndex !== -1
-      ) {
-        // 如果当前时间超过了当前字幕的结束时间，立即暂停
-        if (handleSubtitleCompletion("pause")) {
-          // 不改变 currentSubtitleIndex，保持在当前字幕
-          return;
-        }
-      }
-
-      // 单句循环模式：检查当前字幕是否已播放完毕
-      if (
-        playMode === PlayModeValues.SINGLE_LOOP &&
-        currentSubtitleIndex !== -1
-      ) {
-        // 如果当前时间超过了当前字幕的结束时间，跳回到字幕开始位置继续播放
-        if (handleSubtitleCompletion("loop")) {
-          // 不改变 currentSubtitleIndex，保持在当前字幕
-          return;
-        }
-      }
-
-      // 只有当 index 不是 -1 时才更新 currentSubtitleIndex
-      if (index !== -1) {
-        setCurrentSubtitleIndex(index);
-      }
-    };
-
-    const video = videoRef.current;
-    video.addEventListener("timeupdate", handleTimeUpdate);
-
-    return () => {
-      video.removeEventListener("timeupdate", handleTimeUpdate);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subtitle, playMode, currentSubtitleIndex]);
+  useVideoTimeUpdate(
+    videoRef,
+    subtitle,
+    playMode,
+    currentSubtitleIndex,
+    setCurrentSubtitleIndex
+  );
 
   /**
    * 监听视频播放/暂停状态
@@ -223,7 +159,11 @@ function PlayPage() {
         subtitle
       ) {
         // 如果当前时间超过了当前字幕的结束时间，跳回到字幕开始位置
-        handleSubtitleCompletion("loop");
+        const currentTimeMs = videoRef.current.currentTime * 1000;
+        const currentEntry = subtitle.entries[currentSubtitleIndex];
+        if (currentTimeMs >= currentEntry.endTime) {
+          videoRef.current.currentTime = currentEntry.startTime / 1000;
+        }
       }
       videoRef.current.play();
     }
