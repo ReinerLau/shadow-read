@@ -189,8 +189,20 @@ function PlayPage() {
 
   if (error) {
     return (
-      <div className="h-dvh flex flex-col items-center justify-center gap-4">
-        <div className="text-lg text-red-600">{error || "无法播放视频"}</div>
+      <div className="h-dvh flex flex-col bg-gray-50">
+        {/* 控制栏 */}
+        <div className="p-3 flex justify-between items-center">
+          {/* 返回 */}
+          <Button
+            type="text"
+            shape="circle"
+            onClick={handleGoBack}
+            icon={<div className="i-mdi-arrow-left text-xl" />}
+          />
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="text-lg text-red-600">{error || "无法播放视频"}</div>
+        </div>
       </div>
     );
   }
@@ -285,15 +297,13 @@ function PlayPage() {
       />
 
       {/* 字幕列表 */}
-      {subtitle && (
-        <div className="flex-1 min-h-0 p-4">
-          <SubtitleList
-            subtitle={subtitle}
-            currentIndex={currentSubtitleIndex}
-            onSubtitleClick={handleSubtitleClick}
-          />
-        </div>
-      )}
+      <div className="flex-1 min-h-0 p-4">
+        <SubtitleList
+          subtitle={subtitle!}
+          currentIndex={currentSubtitleIndex}
+          onSubtitleClick={handleSubtitleClick}
+        />
+      </div>
 
       {/* 操作区域 */}
       <div className="p-3  flex justify-center gap-4 bg-white">
