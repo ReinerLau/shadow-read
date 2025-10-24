@@ -6,6 +6,7 @@ import SubtitleList from "../components/SubtitleList";
 import { PlayModeValues, type PlayMode } from "../types";
 import { useVideoInit } from "../hooks/useVideoInit";
 import { useSubtitleInit } from "../hooks/useSubtitleInit";
+import { useSubtitleJump } from "../hooks/useSubtitleJump";
 
 /**
  * 播放页组件
@@ -28,7 +29,6 @@ function PlayPage() {
   const [isMoreModalOpen, setIsMoreModalOpen] = useState<boolean>(false);
   const [playMode, setPlayMode] = useState<PlayMode>(PlayModeValues.OFF);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
-  const [hasJumpedToSaved, setHasJumpedToSaved] = useState<boolean>(false);
 
   /**
    * 检查当前字幕是否播放完毕，若完毕则执行相应操作
@@ -68,41 +68,12 @@ function PlayPage() {
   /**
    * 视频加载完成后跳转到保存的字幕索引
    */
-  useEffect(() => {
-    if (
-      !videoRef.current ||
-      !subtitle ||
-      savedSubtitleIndex === null ||
-      hasJumpedToSaved
-    )
-      return;
-
-    const handleLoadedMetadata = () => {
-      if (
-        videoRef.current &&
-        subtitle &&
-        savedSubtitleIndex !== null &&
-        !hasJumpedToSaved
-      ) {
-        const savedEntry = subtitle.entries[savedSubtitleIndex];
-        videoRef.current.currentTime = savedEntry.startTime / 1000;
-        setCurrentSubtitleIndex(savedSubtitleIndex);
-        setHasJumpedToSaved(true); // 标记已跳转，避免重复跳转
-      }
-    };
-
-    const video = videoRef.current;
-    video.addEventListener("loadedmetadata", handleLoadedMetadata);
-
-    // 如果视频已经加载完成，直接跳转
-    if (video.readyState >= 1) {
-      handleLoadedMetadata();
-    }
-
-    return () => {
-      video.removeEventListener("loadedmetadata", handleLoadedMetadata);
-    };
-  }, [subtitle, savedSubtitleIndex, hasJumpedToSaved]);
+  useSubtitleJump(
+    videoRef,
+    subtitle,
+    savedSubtitleIndex,
+    setCurrentSubtitleIndex
+  );
 
   /**
    * 监听视频播放时间
