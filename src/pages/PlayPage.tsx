@@ -1,10 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button, Modal, Radio } from "antd";
 import SubtitleList from "../components/SubtitleList";
 import { PlayModeValues, type PlayMode } from "../types";
-import { useVideoInit } from "../hooks/useVideoInit";
-import { useSubtitleInit } from "../hooks/useSubtitleInit";
+import { useMediaInit } from "../hooks/useMediaInit";
 import { useVideoTimeUpdate } from "../hooks/useVideoTimeUpdate";
 import { useVideoPlayState } from "../hooks/useVideoPlayState";
 import { useSubtitleIndexPersist } from "../hooks/useSubtitleIndexPersist";
@@ -18,34 +17,18 @@ function PlayPage() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const { videoUrl, error: videoError } = useVideoInit(mediaId);
-  const {
-    subtitle,
-    savedSubtitleIndex,
-    error: subtitleError,
-  } = useSubtitleInit(mediaId);
-  const [error, setError] = useState<string | null>(null);
+  const { videoUrl, subtitle, savedSubtitleIndex, error } =
+    useMediaInit(mediaId);
   const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState<number>(-1);
   const [isMoreModalOpen, setIsMoreModalOpen] = useState<boolean>(false);
   const [playMode, setPlayMode] = useState<PlayMode>(PlayModeValues.OFF);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
 
   /**
-   * 合并视频和字幕初始化错误
-   */
-  useEffect(() => {
-    if (videoError) {
-      setError(videoError);
-    } else if (subtitleError) {
-      setError(subtitleError);
-    }
-  }, [videoError, subtitleError]);
-
-  /**
    * 视频加载元数据后跳转到保存的字幕索引
    */
   const handleLoadedMetadata = () => {
-    if (subtitle && savedSubtitleIndex !== null) {
+    if (subtitle && savedSubtitleIndex) {
       const savedEntry = subtitle.entries[savedSubtitleIndex];
       videoRef.current!.currentTime = savedEntry.startTime / 1000;
       setCurrentSubtitleIndex(savedSubtitleIndex);
