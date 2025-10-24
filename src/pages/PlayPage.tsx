@@ -8,6 +8,7 @@ import { useVideoInit } from "../hooks/useVideoInit";
 import { useSubtitleInit } from "../hooks/useSubtitleInit";
 import { useSubtitleJump } from "../hooks/useSubtitleJump";
 import { useVideoTimeUpdate } from "../hooks/useVideoTimeUpdate";
+import { useVideoPlayState } from "../hooks/useVideoPlayState";
 
 /**
  * 播放页组件
@@ -26,7 +27,6 @@ function PlayPage() {
   } = useSubtitleInit(mediaId);
   const [error, setError] = useState<string | null>(null);
   const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState<number>(-1);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isMoreModalOpen, setIsMoreModalOpen] = useState<boolean>(false);
   const [playMode, setPlayMode] = useState<PlayMode>(PlayModeValues.OFF);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
@@ -66,23 +66,7 @@ function PlayPage() {
   /**
    * 监听视频播放/暂停状态
    */
-  useEffect(() => {
-    if (!videoRef.current) return;
-
-    const handlePlay = () => {
-      setIsPlaying(true);
-    };
-    const handlePause = () => setIsPlaying(false);
-
-    const video = videoRef.current;
-    video.addEventListener("play", handlePlay);
-    video.addEventListener("pause", handlePause);
-
-    return () => {
-      video.removeEventListener("play", handlePlay);
-      video.removeEventListener("pause", handlePause);
-    };
-  }, [playMode, currentSubtitleIndex, subtitle]);
+  const isPlaying = useVideoPlayState(videoRef);
 
   /**
    * 离开页面时保存当前字幕索引
