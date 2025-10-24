@@ -5,7 +5,6 @@ import SubtitleList from "../components/SubtitleList";
 import { PlayModeValues, type PlayMode } from "../types";
 import { useVideoInit } from "../hooks/useVideoInit";
 import { useSubtitleInit } from "../hooks/useSubtitleInit";
-import { useSubtitleJump } from "../hooks/useSubtitleJump";
 import { useVideoTimeUpdate } from "../hooks/useVideoTimeUpdate";
 import { useVideoPlayState } from "../hooks/useVideoPlayState";
 import { useSubtitleIndexPersist } from "../hooks/useSubtitleIndexPersist";
@@ -43,14 +42,15 @@ function PlayPage() {
   }, [videoError, subtitleError]);
 
   /**
-   * 视频加载完成后跳转到保存的字幕索引
+   * 视频加载元数据后跳转到保存的字幕索引
    */
-  useSubtitleJump(
-    videoRef,
-    subtitle,
-    savedSubtitleIndex,
-    setCurrentSubtitleIndex
-  );
+  const handleLoadedMetadata = () => {
+    if (subtitle && savedSubtitleIndex !== null) {
+      const savedEntry = subtitle.entries[savedSubtitleIndex];
+      videoRef.current!.currentTime = savedEntry.startTime / 1000;
+      setCurrentSubtitleIndex(savedSubtitleIndex);
+    }
+  };
 
   /**
    * 监听视频播放时间并同步字幕索引
@@ -252,7 +252,13 @@ function PlayPage() {
       </Modal>
 
       {/* 视频播放器 */}
-      <video ref={videoRef} src={videoUrl} autoPlay className="w-full" />
+      <video
+        ref={videoRef}
+        src={videoUrl}
+        autoPlay
+        className="w-full"
+        onLoadedMetadata={handleLoadedMetadata}
+      />
 
       {/* 字幕列表 */}
       {subtitle && (
