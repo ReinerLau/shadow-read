@@ -5,7 +5,6 @@ import SubtitleList from "../components/SubtitleList";
 import { PlayModeValues, type PlayMode } from "../types";
 import { useMediaInit } from "../hooks/useMediaInit";
 import { useVideoTimeUpdate } from "../hooks/useVideoTimeUpdate";
-import { useVideoPlayState } from "../hooks/useVideoPlayState";
 import { useSubtitleIndexPersist } from "../hooks/useSubtitleIndexPersist";
 
 /**
@@ -23,6 +22,7 @@ function PlayPage() {
   const [isMoreModalOpen, setIsMoreModalOpen] = useState<boolean>(false);
   const [playMode, setPlayMode] = useState<PlayMode>(PlayModeValues.OFF);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   /**
    * 视频加载元数据后跳转到保存的字幕索引
@@ -45,11 +45,6 @@ function PlayPage() {
     currentSubtitleIndex,
     setCurrentSubtitleIndex
   );
-
-  /**
-   * 监听视频播放/暂停状态
-   */
-  const isPlaying = useVideoPlayState(videoRef);
 
   /**
    * 离开页面时保存当前字幕索引
@@ -241,6 +236,8 @@ function PlayPage() {
         autoPlay
         className="w-full"
         onLoadedMetadata={handleLoadedMetadata}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
       />
 
       {/* 字幕列表 */}
