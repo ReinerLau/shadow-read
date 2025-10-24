@@ -4,6 +4,7 @@ import { Button, Modal, Radio } from "antd";
 import MediaDatabaseService from "../services/mediaDatabase";
 import SubtitleList from "../components/SubtitleList";
 import { PlayModeValues, type Subtitle, type PlayMode } from "../types";
+import { useVideoInit } from "../hooks/useVideoInit";
 
 /**
  * 播放页组件
@@ -14,8 +15,8 @@ function PlayPage() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  const { videoUrl, error: videoError } = useVideoInit(mediaId);
   const [error, setError] = useState<string | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string>();
   const [subtitle, setSubtitle] = useState<Subtitle | null>(null);
   const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState<number>(-1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -51,70 +52,54 @@ function PlayPage() {
   };
 
   /**
-   * 初始化视频播放
+   * 合并视频初始化错误
    */
   useEffect(() => {
-    let url: string;
-    const initializeVideo = async () => {
+    if (videoError) {
+      setError(videoError);
+    }
+  }, [videoError]);
+
+  /**
+   * 加载字幕数据
+   */
+  useEffect(() => {
+    const loadSubtitle = async () => {
       try {
         if (!mediaId) {
-          setError("未找到视频ID");
           return;
         }
 
-        // 根据 mediaId 获取视频文件
+        // 获取视频信息以获取保存的字幕索引
         const media = await MediaDatabaseService.getVideoById(Number(mediaId));
-
         if (!media) {
-          setError("视频文件不存在");
           return;
         }
 
-        // 验证文件句柄是否仍然可用
-        try {
-          await media.handle.requestPermission({ mode: "read" });
-          const file = await media.handle.getFile();
-          url = URL.createObjectURL(file);
-          setVideoUrl(url);
+        // 获取关联的字幕
+        const subtitleData = await MediaDatabaseService.getSubtitleByVideoId(
+          Number(mediaId)
+        );
+        if (subtitleData) {
+          setSubtitle(subtitleData);
 
-          // 更新最后播放时间
-          await MediaDatabaseService.updateVideoPlayedTime(media.id);
-
-          // 获取关联的字幕
-          const subtitleData = await MediaDatabaseService.getSubtitleByVideoId(
-            Number(mediaId)
-          );
-          if (subtitleData) {
-            setSubtitle(subtitleData);
-
-            // 如果有保存的字幕索引，保存起来等视频加载完成后跳转
-            if (
-              media.lastSubtitleIndex !== undefined &&
-              media.lastSubtitleIndex >= 0 &&
-              media.lastSubtitleIndex < subtitleData.entries.length
-            ) {
-              setSavedSubtitleIndex(media.lastSubtitleIndex);
-            }
-          } else {
-            setError("未找到字幕文件");
-            return;
+          // 如果有保存的字幕索引，保存起来等视频加载完成后跳转
+          if (
+            media.lastSubtitleIndex !== undefined &&
+            media.lastSubtitleIndex >= 0 &&
+            media.lastSubtitleIndex < subtitleData.entries.length
+          ) {
+            setSavedSubtitleIndex(media.lastSubtitleIndex);
           }
-        } catch {
-          setError("无法访问视频文件，可能已被删除或权限已更改");
+        } else {
+          setError("未找到字幕文件");
         }
       } catch {
-        setError("加载视频失败");
+        setError("加载字幕失败");
       }
     };
 
-    initializeVideo();
-
-    // 清理 URL 对象
-    return () => {
-      if (url) {
-        URL.revokeObjectURL(url);
-      }
-    };
+    loadSubtitle();
   }, [mediaId]);
 
   /**
