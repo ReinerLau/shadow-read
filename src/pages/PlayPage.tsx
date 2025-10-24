@@ -184,19 +184,6 @@ function PlayPage() {
 
     const handlePlay = () => {
       setIsPlaying(true);
-      // 单句暂停模式：播放时检查是否需要跳回到当前字幕的开始位置
-      if (
-        playMode === PlayModeValues.SINGLE_PAUSE &&
-        currentSubtitleIndex !== -1 &&
-        subtitle
-      ) {
-        const currentTimeMs = videoRef.current!.currentTime * 1000;
-        const currentEntry = subtitle.entries[currentSubtitleIndex];
-        // 如果当前时间超过了当前字幕的结束时间，跳回到字幕开始位置
-        if (currentTimeMs >= currentEntry.endTime) {
-          videoRef.current!.currentTime = currentEntry.startTime / 1000;
-        }
-      }
     };
     const handlePause = () => setIsPlaying(false);
 
@@ -278,6 +265,19 @@ function PlayPage() {
     if (isPlaying) {
       videoRef.current.pause();
     } else {
+      // 单句暂停模式：播放时检查是否需要跳回到当前字幕的开始位置
+      if (
+        playMode === PlayModeValues.SINGLE_PAUSE &&
+        currentSubtitleIndex !== -1 &&
+        subtitle
+      ) {
+        const currentTimeMs = videoRef.current!.currentTime * 1000;
+        const currentEntry = subtitle.entries[currentSubtitleIndex];
+        // 如果当前时间超过了当前字幕的结束时间，跳回到字幕开始位置
+        if (currentTimeMs >= currentEntry.endTime) {
+          videoRef.current!.currentTime = currentEntry.startTime / 1000;
+        }
+      }
       videoRef.current.play();
     }
   };
