@@ -298,11 +298,13 @@ function PlayPage() {
 
       {/* 字幕列表 */}
       <div className="flex-1 min-h-0 p-4">
-        <SubtitleList
-          subtitle={subtitle!}
-          currentIndex={currentSubtitleIndex}
-          onSubtitleClick={handleSubtitleClick}
-        />
+        {subtitle && (
+          <SubtitleList
+            subtitle={subtitle!}
+            currentIndex={currentSubtitleIndex}
+            onSubtitleClick={handleSubtitleClick}
+          />
+        )}
       </div>
 
       {/* 操作区域 */}
