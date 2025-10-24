@@ -4,7 +4,6 @@ import { Button, Modal, Radio } from "antd";
 import SubtitleList from "../components/SubtitleList";
 import { PlayModeValues, type PlayMode } from "../types";
 import { useMediaInit } from "../hooks/useMediaInit";
-import { useVideoTimeUpdate } from "../hooks/useVideoTimeUpdate";
 import { useSubtitleIndexPersist } from "../hooks/useSubtitleIndexPersist";
 
 /**
@@ -38,13 +37,48 @@ function PlayPage() {
   /**
    * 监听视频播放时间并同步字幕索引
    */
-  useVideoTimeUpdate(
-    videoRef,
-    subtitle,
-    playMode,
-    currentSubtitleIndex,
-    setCurrentSubtitleIndex
-  );
+  const handleTimeUpdate = () => {
+    if (!videoRef.current || !subtitle) return;
+
+    const currentTimeMs = videoRef.current.currentTime * 1000; // 转换为毫秒
+    const index = subtitle.entries.findIndex(
+      (entry) =>
+        currentTimeMs >= entry.startTime && currentTimeMs < entry.endTime
+    );
+
+    // 单句暂停模式：检查当前字幕是否已播放完毕
+    if (
+      playMode === PlayModeValues.SINGLE_PAUSE &&
+      currentSubtitleIndex !== -1
+    ) {
+      const currentEntry = subtitle.entries[currentSubtitleIndex];
+      // 如果当前时间超过了当前字幕的结束时间，立即暂停
+      if (currentTimeMs >= currentEntry.endTime) {
+        videoRef.current.pause();
+        // 不改变 currentSubtitleIndex，保持在当前字幕
+        return;
+      }
+    }
+
+    // 单句循环模式：检查当前字幕是否已播放完毕
+    if (
+      playMode === PlayModeValues.SINGLE_LOOP &&
+      currentSubtitleIndex !== -1
+    ) {
+      const currentEntry = subtitle.entries[currentSubtitleIndex];
+      // 如果当前时间超过了当前字幕的结束时间，跳回到字幕开始位置继续播放
+      if (currentTimeMs >= currentEntry.endTime) {
+        videoRef.current.currentTime = currentEntry.startTime / 1000;
+        // 不改变 currentSubtitleIndex，保持在当前字幕
+        return;
+      }
+    }
+
+    // 只有当 index 不是 -1 时才更新 currentSubtitleIndex
+    if (index !== -1) {
+      setCurrentSubtitleIndex(index);
+    }
+  };
 
   /**
    * 离开页面时保存当前字幕索引
@@ -236,6 +270,7 @@ function PlayPage() {
         autoPlay
         className="w-full"
         onLoadedMetadata={handleLoadedMetadata}
+        onTimeUpdate={handleTimeUpdate}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
       />
