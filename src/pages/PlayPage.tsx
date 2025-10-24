@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button, Modal, Radio } from "antd";
 import MediaDatabaseService from "../services/mediaDatabase";
@@ -31,27 +31,24 @@ function PlayPage() {
    * @param action - 执行的操作类型：'pause' 暂停视频，'loop' 跳回字幕开始位置
    * @returns 是否应该停止后续处理
    */
-  const handleSubtitleCompletion = useCallback(
-    (action: "pause" | "loop"): boolean => {
-      if (!videoRef.current || !subtitle || currentSubtitleIndex === -1) {
-        return false;
-      }
-
-      const currentTimeMs = videoRef.current.currentTime * 1000;
-      const currentEntry = subtitle.entries[currentSubtitleIndex];
-
-      if (currentTimeMs >= currentEntry.endTime) {
-        if (action === "pause") {
-          videoRef.current.pause();
-        } else if (action === "loop") {
-          videoRef.current.currentTime = currentEntry.startTime / 1000;
-        }
-        return true;
-      }
+  const handleSubtitleCompletion = (action: "pause" | "loop"): boolean => {
+    if (!videoRef.current || !subtitle || currentSubtitleIndex === -1) {
       return false;
-    },
-    [subtitle, currentSubtitleIndex]
-  );
+    }
+
+    const currentTimeMs = videoRef.current.currentTime * 1000;
+    const currentEntry = subtitle.entries[currentSubtitleIndex];
+
+    if (currentTimeMs >= currentEntry.endTime) {
+      if (action === "pause") {
+        videoRef.current.pause();
+      } else if (action === "loop") {
+        videoRef.current.currentTime = currentEntry.startTime / 1000;
+      }
+      return true;
+    }
+    return false;
+  };
 
   /**
    * 初始化视频播放
@@ -197,7 +194,8 @@ function PlayPage() {
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
     };
-  }, [subtitle, playMode, currentSubtitleIndex, handleSubtitleCompletion]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subtitle, playMode, currentSubtitleIndex]);
 
   /**
    * 监听视频播放/暂停状态
