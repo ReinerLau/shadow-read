@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button, Modal, Radio } from "antd";
-import MediaDatabaseService from "../services/mediaDatabase";
 import SubtitleList from "../components/SubtitleList";
 import { PlayModeValues, type PlayMode } from "../types";
 import { useVideoInit } from "../hooks/useVideoInit";
@@ -9,6 +8,7 @@ import { useSubtitleInit } from "../hooks/useSubtitleInit";
 import { useSubtitleJump } from "../hooks/useSubtitleJump";
 import { useVideoTimeUpdate } from "../hooks/useVideoTimeUpdate";
 import { useVideoPlayState } from "../hooks/useVideoPlayState";
+import { useSubtitleIndexPersist } from "../hooks/useSubtitleIndexPersist";
 
 /**
  * 播放页组件
@@ -71,33 +71,7 @@ function PlayPage() {
   /**
    * 离开页面时保存当前字幕索引
    */
-  useEffect(() => {
-    const saveSubtitleIndex = async () => {
-      if (mediaId && currentSubtitleIndex >= 0) {
-        await MediaDatabaseService.updateVideoSubtitleIndex(
-          Number(mediaId),
-          currentSubtitleIndex
-        );
-      }
-    };
-
-    // 监听页面卸载事件
-    const handleBeforeUnload = () => {
-      if (mediaId && currentSubtitleIndex >= 0) {
-        // 使用 sendBeacon 或同步方式保存，但由于 IndexedDB 是异步的，
-        // 我们在组件卸载时保存
-        saveSubtitleIndex();
-      }
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    // 组件卸载时保存
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      saveSubtitleIndex();
-    };
-  }, [mediaId, currentSubtitleIndex]);
+  useSubtitleIndexPersist(mediaId, currentSubtitleIndex);
 
   /**
    * 上一句 - 跳转到上一个字幕条目的开始时间
