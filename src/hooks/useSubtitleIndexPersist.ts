@@ -16,23 +16,17 @@ export const useSubtitleIndexPersist = (
      * 保存字幕索引到数据库
      */
     const saveSubtitleIndex = async () => {
-      if (mediaId && currentSubtitleIndex >= 0) {
-        await MediaDatabaseService.updateSubtitleIndex(
-          Number(mediaId),
-          currentSubtitleIndex
-        );
-      }
+      await MediaDatabaseService.updateSubtitleIndex(
+        Number(mediaId),
+        currentSubtitleIndex
+      );
     };
 
     /**
      * 处理页面卸载事件
      */
     const handleBeforeUnload = () => {
-      if (mediaId && currentSubtitleIndex >= 0) {
-        // 使用 sendBeacon 或同步方式保存，但由于 IndexedDB 是异步的，
-        // 我们在组件卸载时保存
-        saveSubtitleIndex();
-      }
+      saveSubtitleIndex();
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
