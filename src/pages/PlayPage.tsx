@@ -300,7 +300,7 @@ function PlayPage() {
       <div className="flex-1 min-h-0 p-4">
         {subtitle && (
           <SubtitleList
-            subtitle={subtitle!}
+            subtitle={subtitle}
             currentIndex={currentSubtitleIndex}
             onSubtitleClick={handleSubtitleClick}
           />
