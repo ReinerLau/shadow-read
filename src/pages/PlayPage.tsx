@@ -3,8 +3,9 @@ import { useParams, useNavigate } from "react-router";
 import { Button, Modal, Radio } from "antd";
 import MediaDatabaseService from "../services/mediaDatabase";
 import SubtitleList from "../components/SubtitleList";
-import { PlayModeValues, type Subtitle, type PlayMode } from "../types";
+import { PlayModeValues, type PlayMode } from "../types";
 import { useVideoInit } from "../hooks/useVideoInit";
+import { useSubtitleInit } from "../hooks/useSubtitleInit";
 
 /**
  * 播放页组件
@@ -16,16 +17,18 @@ function PlayPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const { videoUrl, error: videoError } = useVideoInit(mediaId);
+  const {
+    subtitle,
+    savedSubtitleIndex,
+    error: subtitleError,
+  } = useSubtitleInit(mediaId);
   const [error, setError] = useState<string | null>(null);
-  const [subtitle, setSubtitle] = useState<Subtitle | null>(null);
   const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState<number>(-1);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [isMoreModalOpen, setIsMoreModalOpen] = useState<boolean>(false);
   const [playMode, setPlayMode] = useState<PlayMode>(PlayModeValues.OFF);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
-  const [savedSubtitleIndex, setSavedSubtitleIndex] = useState<number | null>(
-    null
-  );
+  const [hasJumpedToSaved, setHasJumpedToSaved] = useState<boolean>(false);
 
   /**
    * 检查当前字幕是否播放完毕，若完毕则执行相应操作
@@ -52,68 +55,39 @@ function PlayPage() {
   };
 
   /**
-   * 合并视频初始化错误
+   * 合并视频和字幕初始化错误
    */
   useEffect(() => {
     if (videoError) {
       setError(videoError);
+    } else if (subtitleError) {
+      setError(subtitleError);
     }
-  }, [videoError]);
-
-  /**
-   * 加载字幕数据
-   */
-  useEffect(() => {
-    const loadSubtitle = async () => {
-      try {
-        if (!mediaId) {
-          return;
-        }
-
-        // 获取视频信息以获取保存的字幕索引
-        const media = await MediaDatabaseService.getVideoById(Number(mediaId));
-        if (!media) {
-          return;
-        }
-
-        // 获取关联的字幕
-        const subtitleData = await MediaDatabaseService.getSubtitleByVideoId(
-          Number(mediaId)
-        );
-        if (subtitleData) {
-          setSubtitle(subtitleData);
-
-          // 如果有保存的字幕索引，保存起来等视频加载完成后跳转
-          if (
-            media.lastSubtitleIndex !== undefined &&
-            media.lastSubtitleIndex >= 0 &&
-            media.lastSubtitleIndex < subtitleData.entries.length
-          ) {
-            setSavedSubtitleIndex(media.lastSubtitleIndex);
-          }
-        } else {
-          setError("未找到字幕文件");
-        }
-      } catch {
-        setError("加载字幕失败");
-      }
-    };
-
-    loadSubtitle();
-  }, [mediaId]);
+  }, [videoError, subtitleError]);
 
   /**
    * 视频加载完成后跳转到保存的字幕索引
    */
   useEffect(() => {
-    if (!videoRef.current || !subtitle || savedSubtitleIndex === null) return;
+    if (
+      !videoRef.current ||
+      !subtitle ||
+      savedSubtitleIndex === null ||
+      hasJumpedToSaved
+    )
+      return;
 
     const handleLoadedMetadata = () => {
-      if (videoRef.current && subtitle && savedSubtitleIndex !== null) {
+      if (
+        videoRef.current &&
+        subtitle &&
+        savedSubtitleIndex !== null &&
+        !hasJumpedToSaved
+      ) {
         const savedEntry = subtitle.entries[savedSubtitleIndex];
         videoRef.current.currentTime = savedEntry.startTime / 1000;
         setCurrentSubtitleIndex(savedSubtitleIndex);
-        setSavedSubtitleIndex(null); // 清除保存的索引，避免重复跳转
+        setHasJumpedToSaved(true); // 标记已跳转，避免重复跳转
       }
     };
 
@@ -128,7 +102,7 @@ function PlayPage() {
     return () => {
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
     };
-  }, [subtitle, savedSubtitleIndex]);
+  }, [subtitle, savedSubtitleIndex, hasJumpedToSaved]);
 
   /**
    * 监听视频播放时间
