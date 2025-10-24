@@ -24,6 +24,47 @@ function PlayPage() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   /**
+   * 根据播放模式检查并处理字幕播放逻辑
+   * @param shouldSeekToStart 是否应该跳转到字幕开始位置（播放时为 true，时间更新时为 false）
+   * @returns {boolean} 是否应该更新 currentSubtitleIndex
+   */
+  const checkPlayMode = (shouldSeekToStart: boolean = false): boolean => {
+    if (!subtitle || currentSubtitleIndex === -1 || !videoRef.current)
+      return true;
+
+    const currentTimeMs = videoRef.current.currentTime * 1000;
+    const currentEntry = subtitle.entries[currentSubtitleIndex];
+
+    // 单句暂停模式：检查当前字幕是否已播放完毕
+    if (playMode === PlayModeValues.SINGLE_PAUSE) {
+      // 如果当前时间超过了当前字幕的结束时间
+      if (currentTimeMs >= currentEntry.endTime) {
+        if (shouldSeekToStart) {
+          // 播放时：跳回到字幕开始位置
+          videoRef.current.currentTime = currentEntry.startTime / 1000;
+        } else {
+          // 时间更新时：立即暂停
+          videoRef.current.pause();
+        }
+        // 不更新 currentSubtitleIndex，保持在当前字幕
+        return false;
+      }
+    }
+
+    // 单句循环模式：检查当前字幕是否已播放完毕
+    if (playMode === PlayModeValues.SINGLE_LOOP) {
+      // 如果当前时间超过了当前字幕的结束时间，跳回到字幕开始位置继续播放
+      if (currentTimeMs >= currentEntry.endTime) {
+        videoRef.current.currentTime = currentEntry.startTime / 1000;
+        // 不更新 currentSubtitleIndex，保持在当前字幕
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  /**
    * 视频加载元数据后跳转到保存的字幕索引
    */
   const handleLoadedMetadata = () => {
@@ -38,41 +79,20 @@ function PlayPage() {
    * 监听视频播放时间并同步字幕索引
    */
   const handleTimeUpdate = () => {
-    if (!videoRef.current || !subtitle) return;
+    if (!subtitle) return;
 
-    const currentTimeMs = videoRef.current.currentTime * 1000; // 转换为毫秒
+    const currentTimeMs = videoRef.current!.currentTime * 1000 || 0; // 转换为毫秒
+
+    // 检查播放模式是否允许更新字幕索引
+    if (!checkPlayMode()) {
+      return;
+    }
+
+    // 查找当前时间对应的字幕索引
     const index = subtitle.entries.findIndex(
       (entry) =>
         currentTimeMs >= entry.startTime && currentTimeMs < entry.endTime
     );
-
-    // 单句暂停模式：检查当前字幕是否已播放完毕
-    if (
-      playMode === PlayModeValues.SINGLE_PAUSE &&
-      currentSubtitleIndex !== -1
-    ) {
-      const currentEntry = subtitle.entries[currentSubtitleIndex];
-      // 如果当前时间超过了当前字幕的结束时间，立即暂停
-      if (currentTimeMs >= currentEntry.endTime) {
-        videoRef.current.pause();
-        // 不改变 currentSubtitleIndex，保持在当前字幕
-        return;
-      }
-    }
-
-    // 单句循环模式：检查当前字幕是否已播放完毕
-    if (
-      playMode === PlayModeValues.SINGLE_LOOP &&
-      currentSubtitleIndex !== -1
-    ) {
-      const currentEntry = subtitle.entries[currentSubtitleIndex];
-      // 如果当前时间超过了当前字幕的结束时间，跳回到字幕开始位置继续播放
-      if (currentTimeMs >= currentEntry.endTime) {
-        videoRef.current.currentTime = currentEntry.startTime / 1000;
-        // 不改变 currentSubtitleIndex，保持在当前字幕
-        return;
-      }
-    }
 
     // 只有当 index 不是 -1 时才更新 currentSubtitleIndex
     if (index !== -1) {
@@ -123,18 +143,7 @@ function PlayPage() {
       videoRef.current.pause();
     } else {
       // 单句暂停模式：播放时检查是否需要跳回到当前字幕的开始位置
-      if (
-        playMode === PlayModeValues.SINGLE_PAUSE &&
-        currentSubtitleIndex !== -1 &&
-        subtitle
-      ) {
-        // 如果当前时间超过了当前字幕的结束时间，跳回到字幕开始位置
-        const currentTimeMs = videoRef.current.currentTime * 1000;
-        const currentEntry = subtitle.entries[currentSubtitleIndex];
-        if (currentTimeMs >= currentEntry.endTime) {
-          videoRef.current.currentTime = currentEntry.startTime / 1000;
-        }
-      }
+      checkPlayMode(true);
       videoRef.current.play();
     }
   };
