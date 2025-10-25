@@ -434,31 +434,58 @@ function PlayPage() {
           </div>
           {/* 精确时间显示 */}
           {subtitle && currentSubtitleIndex !== -1 && (
-            <div className="flex gap-2">
-              <div className="flex-1 p-4 bg-blue-50 rounded-lg">
-                <div className="text-xs text-gray-500 mb-1">开始时间</div>
-                <div className="font-mono font-semibold text-blue-600">
-                  {formatTime(
-                    subtitle.entries[currentSubtitleIndex].preciseStartTime
-                  )}
+            <div className="space-y-2">
+              <div className=" p-4 bg-blue-50 rounded-lg flex items-center">
+                <div className="flex-1">
+                  <div className="text-xs text-gray-500 mb-1">开始时间</div>
+                  <div className=" font-mono font-semibold text-blue-600">
+                    {formatTime(
+                      subtitle.entries[currentSubtitleIndex].preciseStartTime
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  {/* 向前偏移 */}
+                  <Button
+                    className="flex-1"
+                    type="text"
+                    icon={<div className="i-mdi:menu-up text-3xl" />}
+                  />
+                  {/* 向后偏移 */}
+                  <Button
+                    className="flex-1"
+                    type="text"
+                    icon={<div className="i-mdi:menu-down text-3xl" />}
+                  />
                 </div>
               </div>
-              <div className="flex-1 p-4 bg-blue-50 rounded-lg">
-                <div className="text-xs text-gray-500 mb-1">结束时间</div>
-                <div className="font-mono font-semibold text-blue-600">
-                  {formatTime(
-                    subtitle.entries[currentSubtitleIndex].preciseEndTime
-                  )}
+              <div className=" p-4 bg-blue-50 rounded-lg flex items-center">
+                <div className="flex-1">
+                  <div className="text-xs text-gray-500 mb-1">结束时间</div>
+                  <div className=" font-mono font-semibold text-blue-600">
+                    {formatTime(
+                      subtitle.entries[currentSubtitleIndex].preciseEndTime
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  {/* 向前偏移 */}
+                  <Button
+                    className="flex-1"
+                    type="text"
+                    icon={<div className="i-mdi:menu-up text-3xl" />}
+                  />
+                  {/* 向后偏移 */}
+                  <Button
+                    className="flex-1"
+                    type="text"
+                    icon={<div className="i-mdi:menu-down text-3xl" />}
+                  />
                 </div>
               </div>
             </div>
           )}
-          <div className="flex gap-4">
-            <Button
-              className="flex-1"
-              type="text"
-              icon={<div className="i-mdi-minus text-xl" />}
-            />
+          <div className="flex">
             {/* 预览 */}
             <Button
               className="flex-1"
@@ -471,11 +498,6 @@ function PlayPage() {
                   <div className="i-mdi-play text-xl" />
                 )
               }
-            />
-            <Button
-              className="flex-1"
-              type="text"
-              icon={<div className="i-mdi-plus text-xl" />}
             />
           </div>
         </div>
