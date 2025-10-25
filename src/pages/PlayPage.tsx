@@ -454,6 +454,11 @@ function PlayPage() {
             </div>
           )}
           <div className="flex gap-4">
+            <Button
+              className="flex-1"
+              type="text"
+              icon={<div className="i-mdi-minus text-xl" />}
+            />
             {/* 预览 */}
             <Button
               className="flex-1"
@@ -466,6 +471,11 @@ function PlayPage() {
                   <div className="i-mdi-play text-xl" />
                 )
               }
+            />
+            <Button
+              className="flex-1"
+              type="text"
+              icon={<div className="i-mdi-plus text-xl" />}
             />
           </div>
         </div>
