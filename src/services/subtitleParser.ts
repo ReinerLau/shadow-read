@@ -32,12 +32,18 @@ export class SubtitleParserService {
     const parsed = parser.fromSrt(text);
 
     // 转换为 SubtitleEntry 格式
-    return parsed.map((item) => ({
-      index: parseInt(item.id),
-      startTime: srtTimeToMs(item.startTime),
-      endTime: srtTimeToMs(item.endTime),
-      text: item.text,
-    }));
+    return parsed.map((item) => {
+      const startTime = srtTimeToMs(item.startTime);
+      const endTime = srtTimeToMs(item.endTime);
+      return {
+        index: parseInt(item.id),
+        startTime,
+        endTime,
+        preciseStartTime: startTime,
+        preciseEndTime: endTime,
+        text: item.text,
+      };
+    });
   }
 }
 
