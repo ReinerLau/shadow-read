@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button, Modal, Radio } from "antd";
+import { Popup } from "antd-mobile";
 import SubtitleList from "../components/SubtitleList";
 import { PlayModeValues, type PlayMode } from "../types";
 import { useMediaInit } from "../hooks/useMediaInit";
@@ -22,9 +23,12 @@ function PlayPage() {
   const [playMode, setPlayMode] = useState<PlayMode>(PlayModeValues.OFF);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [timeOffset, setTimeOffset] = useState<number>(0);
 
   /**
    * 根据播放模式检查并处理字幕播放逻辑
+   * 优先判断是否为编辑模式，编辑模式逻辑与单句暂停相同
    * @param shouldSeekToStart 是否应该跳转到字幕开始位置（播放时为 true，时间更新时为 false）
    * @returns {boolean} 是否应该更新 currentSubtitleIndex
    */
@@ -34,6 +38,22 @@ function PlayPage() {
 
     const currentTimeMs = videoRef.current.currentTime * 1000;
     const currentEntry = subtitle.entries[currentSubtitleIndex];
+
+    // 优先判断编辑模式：逻辑与单句暂停相同
+    if (editMode) {
+      // 如果当前时间超过了当前字幕的精确结束时间
+      if (currentTimeMs >= currentEntry.preciseEndTime) {
+        if (shouldSeekToStart) {
+          // 播放时：跳回到字幕精确开始位置
+          videoRef.current.currentTime = currentEntry.preciseStartTime / 1000;
+        } else {
+          // 时间更新时：立即暂停
+          videoRef.current.pause();
+        }
+        // 不更新 currentSubtitleIndex，保持在当前字幕
+        return false;
+      }
+    }
 
     // 单句暂停模式：检查当前字幕是否已播放完毕
     if (playMode === PlayModeValues.SINGLE_PAUSE) {
@@ -191,6 +211,31 @@ function PlayPage() {
   };
 
   /**
+   * 处理进入编辑模式
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleEnterEditMode = (_subtitleIndex: number) => {
+    setEditMode(true);
+    setTimeOffset(0);
+  };
+
+  /**
+   * 处理退出编辑模式
+   */
+  const handleExitEditMode = () => {
+    setEditMode(false);
+    setTimeOffset(0);
+  };
+
+  /**
+   * 处理保存时间偏移
+   */
+  const handleSaveTimeOffset = () => {
+    // TODO: 实现时间偏移保存逻辑
+    handleExitEditMode();
+  };
+
+  /**
    * 处理播放速度变化
    */
   const handlePlaybackSpeedChange = (speed: number) => {
@@ -316,9 +361,44 @@ function PlayPage() {
             currentIndex={currentSubtitleIndex}
             onSubtitleClick={handleSubtitleClick}
             onSubtitleLongPress={handleSubtitleLongPress}
+            onEnterEditMode={handleEnterEditMode}
           />
         )}
       </div>
+
+      {/* 编辑模式 Popup */}
+      <Popup
+        visible={editMode}
+        mask={false}
+        closeOnMaskClick={false}
+        position="bottom"
+      >
+        <div className="w-full bg-white p-4 rounded-t-lg">
+          <div className="mb-4 text-center font-semibold">编辑时间偏移</div>
+          <div className="mb-4">
+            <label className="block text-sm mb-2">时间偏移 (毫秒)</label>
+            <input
+              type="number"
+              value={timeOffset}
+              onChange={(e) => setTimeOffset(Number(e.target.value))}
+              className="w-full border border-gray-300 rounded px-3 py-2"
+              placeholder="输入时间偏移值"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button className="flex-1" onClick={handleExitEditMode}>
+              取消
+            </Button>
+            <Button
+              className="flex-1"
+              type="primary"
+              onClick={handleSaveTimeOffset}
+            >
+              保存
+            </Button>
+          </div>
+        </div>
+      </Popup>
 
       {/* 操作区域 */}
       <div className="p-3  flex justify-center gap-4 bg-white">

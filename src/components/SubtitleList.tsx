@@ -21,6 +21,8 @@ interface SubtitleListProps {
   onSubtitleClick?: (startTime: number) => void;
   /** 字幕长按回调 - 用于长按时跳转并暂停 */
   onSubtitleLongPress?: (startTime: number) => void;
+  /** 进入编辑模式回调 */
+  onEnterEditMode?: (subtitleIndex: number) => void;
 }
 
 /**
@@ -33,11 +35,13 @@ const SubtitleRow = ({
   currentIndex,
   onSubtitleClick,
   onSubtitleLongPress,
+  onEnterEditMode,
 }: RowComponentProps<{
   subtitle: Subtitle;
   currentIndex: number;
   onSubtitleClick?: (startTime: number) => void;
   onSubtitleLongPress?: (startTime: number) => void;
+  onEnterEditMode?: (subtitleIndex: number) => void;
 }>) => {
   const entry = subtitle.entries[index];
   const isCurrent = index === currentIndex;
@@ -61,11 +65,16 @@ const SubtitleRow = ({
     Dialog.show({
       title: "操作",
       closeOnAction: true,
+      closeOnMaskClick: true,
       actions: [
         {
           key: "offset",
           text: "偏移",
-          onClick: () => {},
+          onClick: () => {
+            if (onEnterEditMode) {
+              onEnterEditMode(index);
+            }
+          },
         },
       ],
     });
@@ -105,6 +114,7 @@ function SubtitleList({
   currentIndex,
   onSubtitleClick,
   onSubtitleLongPress,
+  onEnterEditMode,
 }: SubtitleListProps) {
   const listRef = useListRef(null);
 
@@ -141,6 +151,7 @@ function SubtitleList({
         currentIndex,
         onSubtitleClick,
         onSubtitleLongPress,
+        onEnterEditMode,
       }}
     />
   );
