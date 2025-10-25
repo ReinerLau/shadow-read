@@ -22,7 +22,7 @@ interface SubtitleListProps {
   /** 字幕长按回调 - 用于长按时跳转并暂停 */
   onSubtitleLongPress?: (subtitleIndex: number) => void;
   /** 进入编辑模式回调 */
-  onEnterEditMode?: (subtitleIndex: number) => void;
+  onEnterEditMode?: () => void;
 }
 
 /**
@@ -41,7 +41,7 @@ const SubtitleRow = ({
   currentIndex: number;
   onSubtitleClick?: (subtitleIndex: number) => void;
   onSubtitleLongPress?: (subtitleIndex: number) => void;
-  onEnterEditMode?: (subtitleIndex: number) => void;
+  onEnterEditMode?: () => void;
 }>) => {
   const entry = subtitle.entries[index];
   const isCurrent = index === currentIndex;
@@ -72,7 +72,7 @@ const SubtitleRow = ({
           text: "偏移",
           onClick: () => {
             if (onEnterEditMode) {
-              onEnterEditMode(index);
+              onEnterEditMode();
             }
           },
         },

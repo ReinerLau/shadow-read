@@ -220,8 +220,7 @@ function PlayPage() {
   /**
    * 处理进入编辑模式
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleEnterEditMode = (_subtitleIndex: number) => {
+  const handleEnterEditMode = () => {
     setEditMode(true);
   };
 
