@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { useLongPress } from "@uidotdev/usehooks";
+import { Dialog } from "antd-mobile";
 import {
   List,
   useDynamicRowHeight,
@@ -45,13 +47,38 @@ const SubtitleRow = ({
     }
   };
 
+  /**
+   * 处理长按事件 - 打开 Dialog
+   */
+  const handleLongPress = () => {
+    Dialog.show({
+      title: "操作",
+      closeOnAction: true,
+      actions: [
+        {
+          key: "offset",
+          text: "偏移",
+        },
+      ],
+    });
+  };
+
+  /**
+   * 使用 useLongPress hook 管理长按交互
+   */
+  const longPressAttrs = useLongPress(handleLongPress, {
+    threshold: 500,
+  });
+
   return (
     <div style={style}>
+      {/* 字幕条目 */}
       <div
-        className={`mb-2 shadow-sm rounded transition-colors duration-200 cursor-pointer ${
+        className={`mb-2 shadow-sm rounded transition-colors duration-200 cursor-pointer select-none ${
           isCurrent ? "bg-blue-100 border-l-4 border-blue-500" : "bg-white"
         }`}
         onClick={handleClick}
+        {...longPressAttrs}
       >
         <div className="text-sm break-words whitespace-pre-wrap p-4">
           {entry.text}
