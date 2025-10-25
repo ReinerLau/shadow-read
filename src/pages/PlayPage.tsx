@@ -42,6 +42,11 @@ function PlayPage() {
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
+  /** 编辑模式下的精确时间（毫秒），为 null 时使用原始值 */
+  const [editedTime, setEditedTime] = useState<{
+    startTime: number | null;
+    endTime: number | null;
+  } | null>(null);
 
   /**
    * 根据播放模式检查并处理字幕播放逻辑
@@ -58,18 +63,23 @@ function PlayPage() {
 
     // 优先判断编辑模式：逻辑与单句暂停相同
     if (editMode) {
+      // 使用编辑后的精确时间，如果没有编辑则使用原始精确时间
+      const preciseStartTime =
+        editedTime?.startTime ?? currentEntry.preciseStartTime;
+      const preciseEndTime = editedTime?.endTime ?? currentEntry.preciseEndTime;
+
       // 如果当前时间超过了当前字幕的精确结束时间
-      if (currentTimeMs >= currentEntry.preciseEndTime) {
+      if (currentTimeMs >= preciseEndTime) {
         if (shouldSeekToStart) {
           // 播放时：跳回到字幕精确开始位置
-          videoRef.current.currentTime = currentEntry.preciseStartTime / 1000;
+          videoRef.current.currentTime = preciseStartTime / 1000;
         } else {
           // 时间更新时：立即暂停
           videoRef.current.pause();
         }
-        // 不更新 currentSubtitleIndex，保持在当前字幕
-        return false;
       }
+      // 不走其他播放模式
+      return false;
     }
 
     // 单句暂停模式：检查当前字幕是否已播放完毕
@@ -239,6 +249,13 @@ function PlayPage() {
    * 处理进入编辑模式
    */
   const handleEnterEditMode = () => {
+    if (!subtitle || currentSubtitleIndex === -1) return;
+    const currentEntry = subtitle.entries[currentSubtitleIndex];
+    // 初始化编辑时间为原始精确时间
+    setEditedTime({
+      startTime: currentEntry.preciseStartTime,
+      endTime: currentEntry.preciseEndTime,
+    });
     setEditMode(true);
   };
 
@@ -247,6 +264,30 @@ function PlayPage() {
    */
   const handleExitEditMode = () => {
     setEditMode(false);
+    // 重置编辑时间
+    setEditedTime(null);
+  };
+
+  /**
+   * 处理时间偏移
+   * @param offset 偏移量（毫秒）
+   * @param isStartTime 是否是开始时间
+   * @param isForward 是否向前偏移
+   */
+  const handleTimeOffset = (
+    offset: number,
+    isStartTime: boolean,
+    isForward: boolean
+  ) => {
+    setEditedTime((prev) => {
+      if (prev === null) return null;
+      const newTime = isStartTime ? prev.startTime! : prev.endTime!;
+      const newOffset = isForward ? newTime + offset : newTime - offset;
+      return {
+        ...prev,
+        [isStartTime ? "startTime" : "endTime"]: newOffset,
+      };
+    });
   };
 
   /**
@@ -440,7 +481,8 @@ function PlayPage() {
                   <div className="text-xs text-gray-500 mb-1">开始时间</div>
                   <div className=" font-mono font-semibold text-blue-600">
                     {formatTime(
-                      subtitle.entries[currentSubtitleIndex].preciseStartTime
+                      editedTime?.startTime ??
+                        subtitle.entries[currentSubtitleIndex].preciseStartTime
                     )}
                   </div>
                 </div>
@@ -449,12 +491,14 @@ function PlayPage() {
                   <Button
                     className="flex-1"
                     type="text"
+                    onClick={() => handleTimeOffset(100, true, true)}
                     icon={<div className="i-mdi:menu-up text-3xl" />}
                   />
                   {/* 向后偏移 */}
                   <Button
                     className="flex-1"
                     type="text"
+                    onClick={() => handleTimeOffset(100, true, false)}
                     icon={<div className="i-mdi:menu-down text-3xl" />}
                   />
                 </div>
@@ -464,7 +508,8 @@ function PlayPage() {
                   <div className="text-xs text-gray-500 mb-1">结束时间</div>
                   <div className=" font-mono font-semibold text-blue-600">
                     {formatTime(
-                      subtitle.entries[currentSubtitleIndex].preciseEndTime
+                      editedTime?.endTime ??
+                        subtitle.entries[currentSubtitleIndex].preciseEndTime
                     )}
                   </div>
                 </div>
@@ -473,12 +518,14 @@ function PlayPage() {
                   <Button
                     className="flex-1"
                     type="text"
+                    onClick={() => handleTimeOffset(100, false, true)}
                     icon={<div className="i-mdi:menu-up text-3xl" />}
                   />
                   {/* 向后偏移 */}
                   <Button
                     className="flex-1"
                     type="text"
+                    onClick={() => handleTimeOffset(100, false, false)}
                     icon={<div className="i-mdi:menu-down text-3xl" />}
                   />
                 </div>
