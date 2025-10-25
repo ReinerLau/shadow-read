@@ -193,6 +193,16 @@ export class MediaDatabaseService {
       await db.put("subtitles", subtitle);
     }
   }
+
+  /**
+   * 更新字幕数据
+   * @param subtitle - 更新后的字幕数据
+   * @returns Promise<void>
+   */
+  static async updateSubtitle(subtitle: Subtitle): Promise<void> {
+    const db = await getDB();
+    await db.put("subtitles", subtitle);
+  }
 }
 
 /**

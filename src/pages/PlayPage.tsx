@@ -6,6 +6,7 @@ import SubtitleList from "../components/SubtitleList";
 import { PlayModeValues, type PlayMode } from "../types";
 import { useMediaInit } from "../hooks/useMediaInit";
 import { useSubtitleIndexPersist } from "../hooks/useSubtitleIndexPersist";
+import MediaDatabaseService from "../services/mediaDatabase";
 
 /**
  * 将毫秒转换为 HH:MM:SS.mmm 格式的时间字符串
@@ -95,9 +96,9 @@ function PlayPage() {
           // 时间更新时：立即暂停
           videoRef.current.pause();
         }
-        // 不更新 currentSubtitleIndex，保持在当前字幕
-        return false;
       }
+      // 不更新 currentSubtitleIndex，保持在当前字幕
+      return false;
     }
 
     // 单句循环模式：检查当前字幕是否已播放完毕
@@ -105,9 +106,9 @@ function PlayPage() {
       // 如果当前时间超过了当前字幕的精确结束时间，跳回到字幕精确开始位置继续播放
       if (currentTimeMs >= currentEntry.preciseEndTime) {
         videoRef.current.currentTime = currentEntry.preciseStartTime / 1000;
-        // 不更新 currentSubtitleIndex，保持在当前字幕
-        return false;
       }
+      // 不更新 currentSubtitleIndex，保持在当前字幕
+      return false;
     }
 
     return true;
@@ -295,9 +296,31 @@ function PlayPage() {
   /**
    * 处理保存时间偏移
    */
-  const handleSaveTimeOffset = () => {
-    // TODO: 实现时间偏移保存逻辑
-    handleExitEditMode();
+  const handleSaveTimeOffset = async () => {
+    if (!subtitle || currentSubtitleIndex === -1 || !editedTime) return;
+
+    try {
+      // 创建新的字幕条目副本
+      const updatedSubtitle = { ...subtitle };
+      const currentEntry = updatedSubtitle.entries[currentSubtitleIndex];
+
+      // 更新当前字幕条目的精确时间
+      if (editedTime.startTime !== null) {
+        currentEntry.preciseStartTime = editedTime.startTime;
+      }
+      if (editedTime.endTime !== null) {
+        currentEntry.preciseEndTime = editedTime.endTime;
+      }
+
+      // 保存更新后的字幕数据到数据库
+      await MediaDatabaseService.updateSubtitle(updatedSubtitle);
+
+      // 退出编辑模式
+      handleExitEditMode();
+    } catch {
+      // 错误处理：如果保存失败，可以显示错误提示
+      // 这里可以集成 Ant Design 的 message 组件来显示错误信息
+    }
   };
 
   /**
