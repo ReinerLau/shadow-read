@@ -8,6 +8,24 @@ import { useMediaInit } from "../hooks/useMediaInit";
 import { useSubtitleIndexPersist } from "../hooks/useSubtitleIndexPersist";
 
 /**
+ * 将毫秒转换为 HH:MM:SS.mmm 格式的时间字符串
+ * @param milliseconds 毫秒数
+ * @returns 格式化后的时间字符串
+ */
+const formatTime = (milliseconds: number): string => {
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const ms = milliseconds % 1000;
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+    2,
+    "0"
+  )}:${String(seconds).padStart(2, "0")}.${String(ms).padStart(3, "0")}`;
+};
+
+/**
  * 播放页组件
  * 用于播放导入的本地视频文件
  */
@@ -401,7 +419,7 @@ function PlayPage() {
       </div>
       {/* 编辑模式 Popup */}
       <Popup visible={editMode} closeOnMaskClick={false} position="bottom">
-        <div className="p-4">
+        <div className="p-4 space-y-2">
           <div className="flex gap-2">
             <Button className="flex-1" onClick={handleExitEditMode}>
               取消
@@ -414,6 +432,27 @@ function PlayPage() {
               保存
             </Button>
           </div>
+          {/* 精确时间显示 */}
+          {subtitle && currentSubtitleIndex !== -1 && (
+            <div className="flex gap-2">
+              <div className="flex-1 p-4 bg-blue-50 rounded-lg">
+                <div className="text-xs text-gray-500 mb-1">开始时间</div>
+                <div className="font-mono font-semibold text-blue-600">
+                  {formatTime(
+                    subtitle.entries[currentSubtitleIndex].preciseStartTime
+                  )}
+                </div>
+              </div>
+              <div className="flex-1 p-4 bg-blue-50 rounded-lg">
+                <div className="text-xs text-gray-500 mb-1">结束时间</div>
+                <div className="font-mono font-semibold text-blue-600">
+                  {formatTime(
+                    subtitle.entries[currentSubtitleIndex].preciseEndTime
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
           <div className="flex gap-4">
             {/* 预览 */}
             <Button
