@@ -60,7 +60,7 @@ function ImportVideoModal() {
         setIsLoadingThumbnail(false);
       }
     } catch {
-      void 0;
+      message.error("该环境不允许导入文件");
     }
   };
 
