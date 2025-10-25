@@ -24,7 +24,6 @@ function PlayPage() {
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
-  const [timeOffset, setTimeOffset] = useState<number>(0);
 
   /**
    * 根据播放模式检查并处理字幕播放逻辑
@@ -216,7 +215,6 @@ function PlayPage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleEnterEditMode = (_subtitleIndex: number) => {
     setEditMode(true);
-    setTimeOffset(0);
   };
 
   /**
@@ -224,7 +222,6 @@ function PlayPage() {
    */
   const handleExitEditMode = () => {
     setEditMode(false);
-    setTimeOffset(0);
   };
 
   /**
@@ -265,126 +262,139 @@ function PlayPage() {
   }
 
   return (
-    <div className="h-dvh flex flex-col bg-gray-50">
-      {/* 控制栏 */}
-      <div className="p-3 flex justify-between items-center">
-        {/* 返回 */}
-        <Button
-          type="text"
-          shape="circle"
-          onClick={handleGoBack}
-          icon={<div className="i-mdi-arrow-left text-xl" />}
-        />
-        {/* 更多 */}
-        <Button
-          type="text"
-          shape="circle"
-          onClick={handleMoreClick}
-          icon={<div className="i-mdi-dots-vertical text-xl" />}
-        />
-      </div>
-
-      {/* 更多弹窗 */}
-      <Modal
-        title="更多选项"
-        open={isMoreModalOpen}
-        onCancel={handleMoreModalClose}
-        footer={null}
-      >
-        <div className="flex flex-col gap-2">
-          {/* 播放模式 */}
-          <div>播放模式</div>
-          <Radio.Group
-            block
-            value={playMode}
-            onChange={(e) => setPlayMode(e.target.value as PlayMode)}
-            optionType="button"
-            buttonStyle="solid"
-            options={[
-              {
-                label: "关闭",
-                value: PlayModeValues.OFF,
-              },
-              {
-                label: "单句暂停",
-                value: PlayModeValues.SINGLE_PAUSE,
-              },
-              {
-                label: "单句循环",
-                value: PlayModeValues.SINGLE_LOOP,
-              },
-            ]}
+    <>
+      <div className="h-dvh flex flex-col bg-gray-50">
+        {/* 控制栏 */}
+        <div className="p-3 flex justify-between items-center">
+          {/* 返回 */}
+          <Button
+            type="text"
+            shape="circle"
+            onClick={handleGoBack}
+            icon={<div className="i-mdi-arrow-left text-xl" />}
           />
-          {/* 播放速度 */}
-          <div>播放速度</div>
-          <Radio.Group
-            block
-            value={playbackSpeed}
-            onChange={(e) => handlePlaybackSpeedChange(e.target.value)}
-            optionType="button"
-            buttonStyle="solid"
-            options={[
-              {
-                label: "0.6x",
-                value: 0.6,
-              },
-              {
-                label: "0.8x",
-                value: 0.8,
-              },
-              {
-                label: "1.0x",
-                value: 1.0,
-              },
-            ]}
+          {/* 更多 */}
+          <Button
+            type="text"
+            shape="circle"
+            onClick={handleMoreClick}
+            icon={<div className="i-mdi-dots-vertical text-xl" />}
           />
         </div>
-      </Modal>
 
-      {/* 视频播放器 */}
-      <video
-        ref={videoRef}
-        src={videoUrl}
-        autoPlay
-        className="w-full"
-        onLoadedMetadata={handleLoadedMetadata}
-        onTimeUpdate={handleTimeUpdate}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-      />
-
-      {/* 字幕列表 */}
-      <div className="flex-1 min-h-0 p-4">
-        {subtitle && (
-          <SubtitleList
-            subtitle={subtitle}
-            currentIndex={currentSubtitleIndex}
-            onSubtitleClick={handleSubtitleClick}
-            onSubtitleLongPress={handleSubtitleLongPress}
-            onEnterEditMode={handleEnterEditMode}
-          />
-        )}
-      </div>
-
-      {/* 编辑模式 Popup */}
-      <Popup
-        visible={editMode}
-        mask={false}
-        closeOnMaskClick={false}
-        position="bottom"
-      >
-        <div className="w-full bg-white p-4 rounded-t-lg">
-          <div className="mb-4 text-center font-semibold">编辑时间偏移</div>
-          <div className="mb-4">
-            <label className="block text-sm mb-2">时间偏移 (毫秒)</label>
-            <input
-              type="number"
-              value={timeOffset}
-              onChange={(e) => setTimeOffset(Number(e.target.value))}
-              className="w-full border border-gray-300 rounded px-3 py-2"
-              placeholder="输入时间偏移值"
+        {/* 更多弹窗 */}
+        <Modal
+          title="更多选项"
+          open={isMoreModalOpen}
+          onCancel={handleMoreModalClose}
+          footer={null}
+        >
+          <div className="flex flex-col gap-2">
+            {/* 播放模式 */}
+            <div>播放模式</div>
+            <Radio.Group
+              block
+              value={playMode}
+              onChange={(e) => setPlayMode(e.target.value as PlayMode)}
+              optionType="button"
+              buttonStyle="solid"
+              options={[
+                {
+                  label: "关闭",
+                  value: PlayModeValues.OFF,
+                },
+                {
+                  label: "单句暂停",
+                  value: PlayModeValues.SINGLE_PAUSE,
+                },
+                {
+                  label: "单句循环",
+                  value: PlayModeValues.SINGLE_LOOP,
+                },
+              ]}
+            />
+            {/* 播放速度 */}
+            <div>播放速度</div>
+            <Radio.Group
+              block
+              value={playbackSpeed}
+              onChange={(e) => handlePlaybackSpeedChange(e.target.value)}
+              optionType="button"
+              buttonStyle="solid"
+              options={[
+                {
+                  label: "0.6x",
+                  value: 0.6,
+                },
+                {
+                  label: "0.8x",
+                  value: 0.8,
+                },
+                {
+                  label: "1.0x",
+                  value: 1.0,
+                },
+              ]}
             />
           </div>
+        </Modal>
+
+        {/* 视频播放器 */}
+        <video
+          ref={videoRef}
+          src={videoUrl}
+          autoPlay
+          className="w-full"
+          onLoadedMetadata={handleLoadedMetadata}
+          onTimeUpdate={handleTimeUpdate}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+        />
+
+        {/* 字幕列表 */}
+        <div className="flex-1 min-h-0 p-4">
+          {subtitle && (
+            <SubtitleList
+              subtitle={subtitle}
+              currentIndex={currentSubtitleIndex}
+              onSubtitleClick={handleSubtitleClick}
+              onSubtitleLongPress={handleSubtitleLongPress}
+              onEnterEditMode={handleEnterEditMode}
+            />
+          )}
+        </div>
+
+        {/* 操作区域 */}
+        <div className="p-3  flex justify-center gap-4 bg-white">
+          <Button
+            className="flex-1"
+            type="text"
+            onClick={handlePreviousSubtitle}
+            icon={<div className="i-mdi:skip-previous text-xl" />}
+          />
+          <Button
+            className="flex-1"
+            type="text"
+            onClick={handleTogglePlayPause}
+            icon={
+              isPlaying ? (
+                <div className="i-mdi-pause text-xl" />
+              ) : (
+                <div className="i-mdi-play text-xl" />
+              )
+            }
+          />
+          <Button
+            className="flex-1"
+            type="text"
+            onClick={handleNextSubtitle}
+            icon={<div className="i-mdi:skip-next text-xl" />}
+          />
+        </div>
+      </div>
+      {/* 编辑模式 Popup */}
+      <Popup visible={editMode} closeOnMaskClick={false} position="bottom">
+        <div className="p-4">
           <div className="flex gap-2">
             <Button className="flex-1" onClick={handleExitEditMode}>
               取消
@@ -397,37 +407,24 @@ function PlayPage() {
               保存
             </Button>
           </div>
+          <div className="flex gap-4">
+            {/* 预览 */}
+            <Button
+              className="flex-1"
+              type="text"
+              onClick={handleTogglePlayPause}
+              icon={
+                isPlaying ? (
+                  <div className="i-mdi-pause text-xl" />
+                ) : (
+                  <div className="i-mdi-play text-xl" />
+                )
+              }
+            />
+          </div>
         </div>
       </Popup>
-
-      {/* 操作区域 */}
-      <div className="p-3  flex justify-center gap-4 bg-white">
-        <Button
-          className="flex-1"
-          type="text"
-          onClick={handlePreviousSubtitle}
-          icon={<div className="i-mdi:skip-previous text-xl" />}
-        />
-        <Button
-          className="flex-1"
-          type="text"
-          onClick={handleTogglePlayPause}
-          icon={
-            isPlaying ? (
-              <div className="i-mdi-pause text-xl" />
-            ) : (
-              <div className="i-mdi-play text-xl" />
-            )
-          }
-        />
-        <Button
-          className="flex-1"
-          type="text"
-          onClick={handleNextSubtitle}
-          icon={<div className="i-mdi:skip-next text-xl" />}
-        />
-      </div>
-    </div>
+    </>
   );
 }
 
