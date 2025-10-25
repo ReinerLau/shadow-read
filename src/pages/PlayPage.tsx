@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
-import { Button, Modal, Radio } from "antd";
+import { Button, Modal, Radio, InputNumber } from "antd";
 import { Popup } from "antd-mobile";
 import SubtitleList from "../components/SubtitleList";
 import { PlayModeValues, type PlayMode } from "../types";
@@ -47,6 +47,8 @@ function PlayPage() {
     startTime: number | null;
     endTime: number | null;
   } | null>(null);
+  /** 时间偏移步长（毫秒），默认 100ms */
+  const [offsetStep, setOffsetStep] = useState<number>(100);
 
   /**
    * 根据播放模式检查并处理字幕播放逻辑
@@ -473,13 +475,23 @@ function PlayPage() {
               保存
             </Button>
           </div>
+          {/* 步长设置 */}
+          <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="text-xs text-gray-500 mb-1">偏移步长</div>
+            <InputNumber
+              step={1}
+              value={offsetStep}
+              onChange={(value) => setOffsetStep(value ?? 100)}
+              className="w-full"
+            />
+          </div>
           {/* 精确时间显示 */}
           {subtitle && currentSubtitleIndex !== -1 && (
             <div className="space-y-2">
               <div className=" p-4 bg-blue-50 rounded-lg flex items-center">
                 <div className="flex-1">
                   <div className="text-xs text-gray-500 mb-1">开始时间</div>
-                  <div className=" font-mono font-semibold text-blue-600">
+                  <div className=" font-mono text-sm font-semibold text-blue-600">
                     {formatTime(
                       editedTime?.startTime ??
                         subtitle.entries[currentSubtitleIndex].preciseStartTime
@@ -491,14 +503,14 @@ function PlayPage() {
                   <Button
                     className="flex-1"
                     type="text"
-                    onClick={() => handleTimeOffset(100, true, true)}
+                    onClick={() => handleTimeOffset(offsetStep, true, true)}
                     icon={<div className="i-mdi:menu-up text-3xl" />}
                   />
                   {/* 向后偏移 */}
                   <Button
                     className="flex-1"
                     type="text"
-                    onClick={() => handleTimeOffset(100, true, false)}
+                    onClick={() => handleTimeOffset(offsetStep, true, false)}
                     icon={<div className="i-mdi:menu-down text-3xl" />}
                   />
                 </div>
@@ -506,7 +518,7 @@ function PlayPage() {
               <div className=" p-4 bg-blue-50 rounded-lg flex items-center">
                 <div className="flex-1">
                   <div className="text-xs text-gray-500 mb-1">结束时间</div>
-                  <div className=" font-mono font-semibold text-blue-600">
+                  <div className=" font-mono text-sm font-semibold text-blue-600">
                     {formatTime(
                       editedTime?.endTime ??
                         subtitle.entries[currentSubtitleIndex].preciseEndTime
@@ -518,14 +530,14 @@ function PlayPage() {
                   <Button
                     className="flex-1"
                     type="text"
-                    onClick={() => handleTimeOffset(100, false, true)}
+                    onClick={() => handleTimeOffset(offsetStep, false, true)}
                     icon={<div className="i-mdi:menu-up text-3xl" />}
                   />
                   {/* 向后偏移 */}
                   <Button
                     className="flex-1"
                     type="text"
-                    onClick={() => handleTimeOffset(100, false, false)}
+                    onClick={() => handleTimeOffset(offsetStep, false, false)}
                     icon={<div className="i-mdi:menu-down text-3xl" />}
                   />
                 </div>
