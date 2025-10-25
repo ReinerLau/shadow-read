@@ -179,6 +179,18 @@ function PlayPage() {
   };
 
   /**
+   * 处理字幕长按事件 - 跳转到对应时间并暂停视频
+   */
+  const handleSubtitleLongPress = (startTimeMs: number) => {
+    if (!videoRef.current) return;
+    // 将毫秒转换为秒
+    videoRef.current.currentTime = startTimeMs / 1000;
+    // 暂停视频
+    videoRef.current.pause();
+    setIsPlaying(false);
+  };
+
+  /**
    * 处理播放速度变化
    */
   const handlePlaybackSpeedChange = (speed: number) => {
@@ -303,6 +315,7 @@ function PlayPage() {
             subtitle={subtitle}
             currentIndex={currentSubtitleIndex}
             onSubtitleClick={handleSubtitleClick}
+            onSubtitleLongPress={handleSubtitleLongPress}
           />
         )}
       </div>

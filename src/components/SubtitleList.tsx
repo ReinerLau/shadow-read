@@ -19,6 +19,8 @@ interface SubtitleListProps {
   currentIndex: number;
   /** 字幕点击回调 - 用于双击跳转到对应时间 */
   onSubtitleClick?: (startTime: number) => void;
+  /** 字幕长按回调 - 用于长按时跳转并暂停 */
+  onSubtitleLongPress?: (startTime: number) => void;
 }
 
 /**
@@ -30,10 +32,12 @@ const SubtitleRow = ({
   subtitle,
   currentIndex,
   onSubtitleClick,
+  onSubtitleLongPress,
 }: RowComponentProps<{
   subtitle: Subtitle;
   currentIndex: number;
   onSubtitleClick?: (startTime: number) => void;
+  onSubtitleLongPress?: (startTime: number) => void;
 }>) => {
   const entry = subtitle.entries[index];
   const isCurrent = index === currentIndex;
@@ -48,9 +52,12 @@ const SubtitleRow = ({
   };
 
   /**
-   * 处理长按事件 - 打开 Dialog
+   * 处理长按事件 - 跳转到字幕对应时间并暂停视频
    */
   const handleLongPress = () => {
+    if (onSubtitleLongPress) {
+      onSubtitleLongPress(entry.startTime);
+    }
     Dialog.show({
       title: "操作",
       closeOnAction: true,
@@ -58,6 +65,7 @@ const SubtitleRow = ({
         {
           key: "offset",
           text: "偏移",
+          onClick: () => {},
         },
       ],
     });
@@ -96,6 +104,7 @@ function SubtitleList({
   subtitle,
   currentIndex,
   onSubtitleClick,
+  onSubtitleLongPress,
 }: SubtitleListProps) {
   const listRef = useListRef(null);
 
@@ -127,7 +136,12 @@ function SubtitleList({
       rowCount={subtitle.entries.length}
       rowHeight={rowHeight}
       rowComponent={SubtitleRow}
-      rowProps={{ subtitle, currentIndex, onSubtitleClick }}
+      rowProps={{
+        subtitle,
+        currentIndex,
+        onSubtitleClick,
+        onSubtitleLongPress,
+      }}
     />
   );
 }
