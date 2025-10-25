@@ -14,9 +14,9 @@ export default defineConfig({
         enabled: false,
       },
       manifest: {
-        id: "doudizhu",
-        name: "Doudizhu",
-        short_name: "Doudizhu",
+        id: "shadow-read",
+        name: "Shadow Read",
+        short_name: "Shadow Read",
         theme_color: "#ffffff",
         icons: [
           {
