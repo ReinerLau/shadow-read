@@ -17,10 +17,10 @@ interface SubtitleListProps {
   subtitle: Subtitle;
   /** 当前字幕索引 */
   currentIndex: number;
-  /** 字幕点击回调 - 用于双击跳转到对应时间 */
-  onSubtitleClick?: (startTime: number) => void;
+  /** 字幕点击回调 - 用于跳转到对应时间 */
+  onSubtitleClick?: (subtitleIndex: number) => void;
   /** 字幕长按回调 - 用于长按时跳转并暂停 */
-  onSubtitleLongPress?: (startTime: number) => void;
+  onSubtitleLongPress?: (subtitleIndex: number) => void;
   /** 进入编辑模式回调 */
   onEnterEditMode?: (subtitleIndex: number) => void;
 }
@@ -39,8 +39,8 @@ const SubtitleRow = ({
 }: RowComponentProps<{
   subtitle: Subtitle;
   currentIndex: number;
-  onSubtitleClick?: (startTime: number) => void;
-  onSubtitleLongPress?: (startTime: number) => void;
+  onSubtitleClick?: (subtitleIndex: number) => void;
+  onSubtitleLongPress?: (subtitleIndex: number) => void;
   onEnterEditMode?: (subtitleIndex: number) => void;
 }>) => {
   const entry = subtitle.entries[index];
@@ -51,7 +51,7 @@ const SubtitleRow = ({
    */
   const handleClick = () => {
     if (onSubtitleClick) {
-      onSubtitleClick(entry.startTime);
+      onSubtitleClick(index);
     }
   };
 
@@ -60,7 +60,7 @@ const SubtitleRow = ({
    */
   const handleLongPress = () => {
     if (onSubtitleLongPress) {
-      onSubtitleLongPress(entry.startTime);
+      onSubtitleLongPress(index);
     }
     Dialog.show({
       title: "操作",
