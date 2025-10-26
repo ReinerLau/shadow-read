@@ -352,12 +352,15 @@ function PlayPage() {
               ref={videoRef}
               src={videoUrl}
               autoPlay
-              className="w-full"
+              className="w-full h-full max-sm:h-auto"
               onLoadedMetadata={handleLoadedMetadata}
               onTimeUpdate={handleTimeUpdate}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
               playsInline
+              controls
+              controlsList="nofullscreen nodownload noplaybackrate"
+              disablePictureInPicture
             />
           </div>
 
