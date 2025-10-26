@@ -8,8 +8,12 @@ export interface MediaFile {
   id: number;
   /** 文件名称 */
   name: string;
-  /** 文件句柄（使用 structuredClone 序列化） */
-  handle: FileSystemFileHandle;
+  /** 文件句柄（使用 File System Access API 时存储） */
+  handle?: FileSystemFileHandle | null;
+  /** 文件哈希值（用于识别文件唯一性） */
+  fileHash?: string;
+  /** 文件 Blob（降级方案中存储 File 转换后的 Blob 对象） */
+  blob?: Blob | null;
   /** 视频第一帧缩略图 (Data URL) */
   thumbnail?: string;
   /** 视频时长格式化字符串 (HH:MM:SS) */
@@ -25,7 +29,7 @@ export interface MediaDB extends DBSchema {
   videos: {
     key: number;
     value: MediaFile;
-    indexes: { name: string };
+    indexes: { fileHash: string };
   };
   subtitles: {
     key: number;

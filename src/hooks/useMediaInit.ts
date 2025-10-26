@@ -62,11 +62,22 @@ export function useMediaInit(mediaId: string | undefined): UseMediaInitReturn {
           return;
         }
 
-        // 验证文件句柄是否仍然可用
-        await media.handle.requestPermission({ mode: "read" });
-        const file = await media.handle.getFile();
-        url = URL.createObjectURL(file);
-        setVideoUrl(url);
+        // 检查是否有 File System Access API 的文件句柄
+        if (media.handle) {
+          // 验证文件句柄是否仍然可用
+          await media.handle.requestPermission({ mode: "read" });
+          const file = await media.handle.getFile();
+          url = URL.createObjectURL(file);
+          setVideoUrl(url);
+        } else if (media.blob) {
+          // 降级方案：使用存储的 Blob 对象
+          url = URL.createObjectURL(media.blob);
+          setVideoUrl(url);
+        } else {
+          // 既没有文件句柄也没有 Blob，说明文件已丢失
+          setError("视频文件已丢失，请重新导入该视频");
+          return;
+        }
 
         // 更新最后播放时间
         await MediaDatabaseService.updateVideoPlayedTime(media.id);

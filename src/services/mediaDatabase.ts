@@ -5,7 +5,7 @@ import type { MediaFile, MediaDB, Subtitle } from "../types";
  * 数据库名称和版本
  */
 const DB_NAME = "media";
-const DB_VERSION = 5;
+const DB_VERSION = 7;
 
 /**
  * 数据库实例缓存
@@ -25,10 +25,12 @@ async function getDB(): Promise<IDBPDatabase<MediaDB>> {
     upgrade(db) {
       // 创建视频存储对象仓库
       if (!db.objectStoreNames.contains("videos")) {
-        db.createObjectStore("videos", {
+        const videosStore = db.createObjectStore("videos", {
           keyPath: "id",
           autoIncrement: true,
         });
+        // 添加 fileHash 索引以快速查询重复文件
+        videosStore.createIndex("fileHash", "fileHash", { unique: true });
       }
       // 创建字幕存储对象仓库
       if (!db.objectStoreNames.contains("subtitles")) {
@@ -43,6 +45,40 @@ async function getDB(): Promise<IDBPDatabase<MediaDB>> {
   });
 
   return dbInstance;
+}
+
+/**
+ * 分块计算文件的 SHA256 哈希值（适用于大文件）
+ * @param file - 文件对象
+ * @param chunkSize - 分块大小（默认 4MB）
+ * @returns Promise<string> 返回文件的哈希值
+ */
+async function computeFileHash(
+  file: File | Blob,
+  chunkSize: number = 4 * 1024 * 1024
+): Promise<string> {
+  const chunks: Uint8Array[] = [];
+  let offset = 0;
+
+  while (offset < file.size) {
+    const end = Math.min(offset + chunkSize, file.size);
+    const chunk = file.slice(offset, end);
+    chunks.push(new Uint8Array(await chunk.arrayBuffer()));
+    offset = end;
+  }
+
+  // Combine chunks and hash
+  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const combined = new Uint8Array(totalLength);
+  let pos = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, pos);
+    pos += chunk.length;
+  }
+
+  const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 /**
@@ -134,6 +170,16 @@ export class MediaDatabaseService {
   }
 
   /**
+   * 为文件计算哈希值并准备保存
+   * @param file - 文件对象
+   * @returns Promise<string> 返回文件哈希值
+   */
+  static async prepareFileForStorage(file: File | Blob): Promise<string> {
+    const fileHash = await computeFileHash(file);
+    return fileHash;
+  }
+
+  /**
    * 保存字幕数据
    * @param subtitle - 字幕数据
    * @returns Promise<number> 返回保存后的字幕ID
@@ -202,6 +248,18 @@ export class MediaDatabaseService {
   static async updateSubtitle(subtitle: Subtitle): Promise<void> {
     const db = await getDB();
     await db.put("subtitles", subtitle);
+  }
+
+  /**
+   * 根据文件哈希值获取视频
+   * @param fileHash - 文件哈希值
+   * @returns Promise<MediaFile | undefined>
+   */
+  static async getVideoByFileHash(
+    fileHash: string
+  ): Promise<MediaFile | undefined> {
+    const db = await getDB();
+    return await db.getFromIndex("videos", "fileHash", fileHash);
   }
 }
 
