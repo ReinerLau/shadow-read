@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
-import { Button, Modal, Radio } from "antd";
+import { Button } from "antd";
 import { EditModePopup } from "../components/EditModePopup";
 import SubtitleList from "../components/SubtitleList";
+import { MoreModal } from "../components/MoreModal";
 import { PlayModeValues, type PlayMode } from "../types";
 import { useMediaInit } from "../hooks/useMediaInit";
 import { useSubtitleIndexPersist } from "../hooks/useSubtitleIndexPersist";
@@ -22,7 +23,6 @@ function PlayPage() {
   const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState<number>(-1);
   const [isMoreModalOpen, setIsMoreModalOpen] = useState<boolean>(false);
   const [playMode, setPlayMode] = useState<PlayMode>(PlayModeValues.OFF);
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
   /** 编辑模式下的精确时间（毫秒），为 null 时使用原始值 */
@@ -309,7 +309,6 @@ function PlayPage() {
   const handlePlaybackSpeedChange = (speed: number) => {
     if (!videoRef.current) return;
     videoRef.current.playbackRate = speed;
-    setPlaybackSpeed(speed);
   };
 
   if (error) {
@@ -354,61 +353,13 @@ function PlayPage() {
         </div>
 
         {/* 更多弹窗 */}
-        <Modal
-          title="更多选项"
+        <MoreModal
           open={isMoreModalOpen}
           onCancel={handleMoreModalClose}
-          footer={null}
-        >
-          <div className="flex flex-col gap-2">
-            {/* 播放模式 */}
-            <div>播放模式</div>
-            <Radio.Group
-              block
-              value={playMode}
-              onChange={(e) => setPlayMode(e.target.value as PlayMode)}
-              optionType="button"
-              buttonStyle="solid"
-              options={[
-                {
-                  label: "关闭",
-                  value: PlayModeValues.OFF,
-                },
-                {
-                  label: "单句暂停",
-                  value: PlayModeValues.SINGLE_PAUSE,
-                },
-                {
-                  label: "单句循环",
-                  value: PlayModeValues.SINGLE_LOOP,
-                },
-              ]}
-            />
-            {/* 播放速度 */}
-            <div>播放速度</div>
-            <Radio.Group
-              block
-              value={playbackSpeed}
-              onChange={(e) => handlePlaybackSpeedChange(e.target.value)}
-              optionType="button"
-              buttonStyle="solid"
-              options={[
-                {
-                  label: "0.6x",
-                  value: 0.6,
-                },
-                {
-                  label: "0.8x",
-                  value: 0.8,
-                },
-                {
-                  label: "1.0x",
-                  value: 1.0,
-                },
-              ]}
-            />
-          </div>
-        </Modal>
+          onPlayModeChange={(mode) => setPlayMode(mode)}
+          onPlaybackSpeedChange={(speed) => handlePlaybackSpeedChange(speed)}
+          playMode={playMode}
+        />
 
         {/* 视频播放器 */}
         <video
