@@ -42,6 +42,7 @@ function HomePage() {
           type="text"
           shape="circle"
           icon={<div className="i-mdi-magnify text-xl" />}
+          disabled={true}
         />
         {/* 导入视频 */}
         <ImportVideo />
