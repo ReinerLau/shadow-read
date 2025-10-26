@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useLongPress } from "@uidotdev/usehooks";
+import { Button } from "antd";
 import { Dialog } from "antd-mobile";
 import {
   List,
@@ -19,8 +19,6 @@ interface SubtitleListProps {
   currentIndex: number;
   /** 字幕点击回调 - 用于跳转到对应时间 */
   onSubtitleClick?: (subtitleIndex: number) => void;
-  /** 字幕长按回调 - 用于长按时跳转并暂停 */
-  onSubtitleLongPress?: (subtitleIndex: number) => void;
   /** 进入编辑模式回调 */
   onEnterEditMode?: () => void;
 }
@@ -34,13 +32,11 @@ const SubtitleRow = ({
   subtitle,
   currentIndex,
   onSubtitleClick,
-  onSubtitleLongPress,
   onEnterEditMode,
 }: RowComponentProps<{
   subtitle: Subtitle;
   currentIndex: number;
   onSubtitleClick?: (subtitleIndex: number) => void;
-  onSubtitleLongPress?: (subtitleIndex: number) => void;
   onEnterEditMode?: () => void;
 }>) => {
   const entry = subtitle.entries[index];
@@ -56,50 +52,55 @@ const SubtitleRow = ({
   };
 
   /**
-   * 处理长按事件 - 跳转到字幕对应时间并暂停视频
+   * 处理更多操作按钮点击事件
    */
-  const handleLongPress = () => {
-    if (onSubtitleLongPress) {
-      onSubtitleLongPress(index);
-    }
+  const handleMoreClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     Dialog.show({
       title: "操作",
-      closeOnAction: true,
       closeOnMaskClick: true,
+      closeOnAction: true,
       actions: [
         {
           key: "offset",
           text: "偏移",
-          onClick: () => {
-            if (onEnterEditMode) {
-              onEnterEditMode();
-            }
-          },
+          onClick: handleOffset,
         },
       ],
     });
   };
 
   /**
-   * 使用 useLongPress hook 管理长按交互
+   * 处理偏移操作
    */
-  const longPressAttrs = useLongPress(handleLongPress, {
-    threshold: 500,
-  });
+  const handleOffset = () => {
+    if (onEnterEditMode) {
+      onEnterEditMode();
+    }
+  };
 
   return (
     <div style={style}>
       {/* 字幕条目 */}
       <div
-        className={`mb-2 shadow-sm rounded transition-colors duration-200 cursor-pointer select-none ${
+        className={`mb-2 shadow-sm rounded transition-colors duration-200 cursor-pointer select-none flex items-center justify-between px-4 py-4 ${
           isCurrent ? "bg-blue-100 border-l-4 border-blue-500" : "bg-white"
         }`}
         onClick={handleClick}
-        {...longPressAttrs}
       >
-        <div className="text-sm break-words whitespace-pre-wrap p-4">
+        <div className="text-sm break-words whitespace-pre-wrap flex-1">
           {entry.text}
         </div>
+        {/* 更多操作按钮 */}
+        {isCurrent && (
+          <Button
+            type="text"
+            size="small"
+            onClick={handleMoreClick}
+            title="更多操作"
+            icon={<div className="i-mdi-dots-vertical text-lg" />}
+          />
+        )}
       </div>
     </div>
   );
@@ -113,7 +114,6 @@ function SubtitleList({
   subtitle,
   currentIndex,
   onSubtitleClick,
-  onSubtitleLongPress,
   onEnterEditMode,
 }: SubtitleListProps) {
   const listRef = useListRef(null);
@@ -150,7 +150,6 @@ function SubtitleList({
         subtitle,
         currentIndex,
         onSubtitleClick,
-        onSubtitleLongPress,
         onEnterEditMode,
       }}
     />

@@ -212,22 +212,6 @@ function PlayPage() {
   };
 
   /**
-   * 处理字幕长按事件 - 跳转到对应时间并暂停视频
-   */
-  const handleSubtitleLongPress = (subtitleIndex: number) => {
-    if (!videoRef.current || !subtitle) return;
-    // 获取对应索引的字幕条目
-    const entry = subtitle.entries[subtitleIndex];
-    // 将毫秒转换为秒
-    videoRef.current.currentTime = entry.startTime / 1000;
-    // 暂停视频
-    videoRef.current.pause();
-    setIsPlaying(false);
-    // 更新当前字幕索引
-    setCurrentSubtitleIndex(subtitleIndex);
-  };
-
-  /**
    * 处理进入编辑模式
    */
   const handleEnterEditMode = () => {
@@ -376,7 +360,6 @@ function PlayPage() {
                 subtitle={subtitle}
                 currentIndex={currentSubtitleIndex}
                 onSubtitleClick={handleSubtitleClick}
-                onSubtitleLongPress={handleSubtitleLongPress}
                 onEnterEditMode={handleEnterEditMode}
               />
             )}
