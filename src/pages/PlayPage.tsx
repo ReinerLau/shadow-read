@@ -353,30 +353,34 @@ function PlayPage() {
           />
         </div>
 
-        {/* 视频播放器 */}
-        <video
-          ref={videoRef}
-          src={videoUrl}
-          autoPlay
-          className="w-full min-h-48 bg-black"
-          onLoadedMetadata={handleLoadedMetadata}
-          onTimeUpdate={handleTimeUpdate}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-          playsInline
-        />
-
-        {/* 字幕列表 */}
-        <div className="flex-1 min-h-0 p-4">
-          {subtitle && (
-            <SubtitleList
-              subtitle={subtitle}
-              currentIndex={currentSubtitleIndex}
-              onSubtitleClick={handleSubtitleClick}
-              onSubtitleLongPress={handleSubtitleLongPress}
-              onEnterEditMode={handleEnterEditMode}
+        <div className="flex-1 flex min-h-0 w-full min-w-0 max-sm:flex-col">
+          {/* 视频播放器 */}
+          <div className="h-full flex-1 bg-black flex items-center justify-center max-sm:w-full max-sm:h-auto max-sm:flex-none">
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              autoPlay
+              className="w-full"
+              onLoadedMetadata={handleLoadedMetadata}
+              onTimeUpdate={handleTimeUpdate}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              playsInline
             />
-          )}
+          </div>
+
+          {/* 字幕列表 */}
+          <div className="w-1/3 p-4 max-sm:w-full max-sm:flex-1 max-sm:min-h-0">
+            {subtitle && (
+              <SubtitleList
+                subtitle={subtitle}
+                currentIndex={currentSubtitleIndex}
+                onSubtitleClick={handleSubtitleClick}
+                onSubtitleLongPress={handleSubtitleLongPress}
+                onEnterEditMode={handleEnterEditMode}
+              />
+            )}
+          </div>
         </div>
 
         {/* 操作区域 */}
