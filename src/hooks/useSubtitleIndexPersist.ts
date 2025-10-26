@@ -11,12 +11,7 @@ export const useSubtitleIndexPersist = (
   mediaId: string | undefined,
   currentSubtitleIndex: number
 ) => {
-  const subtitleIndexRef = useRef(currentSubtitleIndex);
   const isFirstRenderRef = useRef(true);
-
-  useEffect(() => {
-    subtitleIndexRef.current = currentSubtitleIndex;
-  }, [currentSubtitleIndex]);
 
   useEffect(() => {
     // 如果是首次渲染，标记一下然后直接返回，不执行后续逻辑
@@ -28,26 +23,13 @@ export const useSubtitleIndexPersist = (
     /**
      * 保存字幕索引到数据库
      */
-    const saveSubtitleIndex = async () => {
-      await MediaDatabaseService.updateSubtitleIndex(
+    const saveSubtitleIndex = () => {
+      MediaDatabaseService.updateSubtitleIndex(
         Number(mediaId),
-        subtitleIndexRef.current
+        currentSubtitleIndex
       );
     };
 
-    /**
-     * 处理页面卸载事件
-     */
-    const handleBeforeUnload = () => {
-      saveSubtitleIndex();
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    // 组件卸载时保存
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      saveSubtitleIndex();
-    };
-  }, [mediaId]);
+    saveSubtitleIndex();
+  }, [mediaId, currentSubtitleIndex]);
 };
