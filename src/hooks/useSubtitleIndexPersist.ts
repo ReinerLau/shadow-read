@@ -12,12 +12,19 @@ export const useSubtitleIndexPersist = (
   currentSubtitleIndex: number
 ) => {
   const subtitleIndexRef = useRef(currentSubtitleIndex);
+  const isFirstRenderRef = useRef(true);
 
   useEffect(() => {
     subtitleIndexRef.current = currentSubtitleIndex;
   }, [currentSubtitleIndex]);
 
   useEffect(() => {
+    // 如果是首次渲染，标记一下然后直接返回，不执行后续逻辑
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
+
     /**
      * 保存字幕索引到数据库
      */
