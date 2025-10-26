@@ -20,7 +20,7 @@ interface SubtitleListProps {
   /** 字幕点击回调 - 用于跳转到对应时间 */
   onSubtitleClick?: (subtitleIndex: number) => void;
   /** 进入编辑模式回调 */
-  onEnterEditMode?: () => void;
+  onEnterEditMode?: (subtitleIndex: number) => void;
 }
 
 /**
@@ -37,7 +37,7 @@ const SubtitleRow = ({
   subtitle: Subtitle;
   currentIndex: number;
   onSubtitleClick?: (subtitleIndex: number) => void;
-  onEnterEditMode?: () => void;
+  onEnterEditMode?: (subtitleIndex: number) => void;
 }>) => {
   const entry = subtitle.entries[index];
   const isCurrent = index === currentIndex;
@@ -75,7 +75,7 @@ const SubtitleRow = ({
    */
   const handleOffset = () => {
     if (onEnterEditMode) {
-      onEnterEditMode();
+      onEnterEditMode(index);
     }
   };
 

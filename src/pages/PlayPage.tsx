@@ -202,7 +202,7 @@ function PlayPage() {
    * 处理字幕点击事件 - 跳转到对应时间
    */
   const handleSubtitleClick = (subtitleIndex: number) => {
-    if (!videoRef.current || !subtitle) return;
+    if (!videoRef.current || !subtitle || subtitleIndex === -1) return;
     // 获取对应索引的字幕条目
     const entry = subtitle.entries[subtitleIndex];
     // 将毫秒转换为秒
@@ -214,14 +214,20 @@ function PlayPage() {
   /**
    * 处理进入编辑模式
    */
-  const handleEnterEditMode = () => {
-    if (!subtitle || currentSubtitleIndex === -1) return;
-    const currentEntry = subtitle.entries[currentSubtitleIndex];
+  const handleEnterEditMode = (subtitleIndex: number) => {
+    if (!subtitle || subtitleIndex === -1 || !videoRef.current) return;
+    const targetEntry = subtitle.entries[subtitleIndex];
     // 初始化编辑时间为原始精确时间
     setEditedTime({
-      startTime: currentEntry.preciseStartTime,
-      endTime: currentEntry.preciseEndTime,
+      startTime: targetEntry.preciseStartTime,
+      endTime: targetEntry.preciseEndTime,
     });
+    // 跳转到对应字幕的开始位置
+    videoRef.current.currentTime = targetEntry.startTime / 1000;
+    // 暂停播放
+    videoRef.current.pause();
+    // 更新当前字幕索引
+    setCurrentSubtitleIndex(subtitleIndex);
     setEditMode(true);
   };
 
