@@ -21,6 +21,8 @@ interface SubtitleListProps {
   onSubtitleClick?: (subtitleIndex: number) => void;
   /** 进入编辑模式回调 */
   onEnterEditMode?: (subtitleIndex: number) => void;
+  /** 是否对字幕添加模糊滤镜 */
+  subtitleBlurred?: boolean;
 }
 
 /**
@@ -33,11 +35,13 @@ const SubtitleRow = ({
   currentIndex,
   onSubtitleClick,
   onEnterEditMode,
+  subtitleBlurred,
 }: RowComponentProps<{
   subtitle: Subtitle;
   currentIndex: number;
   onSubtitleClick?: (subtitleIndex: number) => void;
   onEnterEditMode?: (subtitleIndex: number) => void;
+  subtitleBlurred?: boolean;
 }>) => {
   const entry = subtitle.entries[index];
   const isCurrent = index === currentIndex;
@@ -88,7 +92,11 @@ const SubtitleRow = ({
         }`}
         onClick={handleClick}
       >
-        <div className="text-sm break-words whitespace-pre-wrap flex-1">
+        <div
+          className={`text-sm break-words whitespace-pre-wrap flex-1 ${
+            subtitleBlurred ? "blur-sm" : "blur-none"
+          }`}
+        >
           {entry.text}
         </div>
         {/* 更多操作按钮 */}
@@ -115,6 +123,7 @@ function SubtitleList({
   currentIndex,
   onSubtitleClick,
   onEnterEditMode,
+  subtitleBlurred,
 }: SubtitleListProps) {
   const listRef = useListRef(null);
 
@@ -151,6 +160,7 @@ function SubtitleList({
         currentIndex,
         onSubtitleClick,
         onEnterEditMode,
+        subtitleBlurred,
       }}
     />
   );

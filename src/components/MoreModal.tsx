@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, Radio } from "antd";
+import { Modal, Radio, Switch } from "antd";
 import { PlayModeValues, type PlayMode } from "../types";
 
 /**
@@ -14,6 +14,10 @@ interface MoreModalProps {
   onPlayModeChange: (mode: PlayMode) => void;
   /** 播放速度变化回调 - 供父组件应用速度到视频 */
   onPlaybackSpeedChange: (speed: number) => void;
+  /** 字幕模糊状态 */
+  subtitleBlurred: boolean;
+  /** 字幕模糊状态变化回调 */
+  onSubtitleBlurChange: (blurred: boolean) => void;
   /** 弹窗关闭回调 */
   onCancel: () => void;
 }
@@ -27,6 +31,8 @@ export const MoreModal = ({
   playMode,
   onPlayModeChange,
   onPlaybackSpeedChange,
+  subtitleBlurred,
+  onSubtitleBlurChange,
   onCancel,
 }: MoreModalProps) => {
   /** 播放速度状态，由 MoreModal 内部管理 */
@@ -90,6 +96,11 @@ export const MoreModal = ({
             },
           ]}
         />
+        {/* 字幕模糊开关 */}
+        <div className="mt-4 flex items-center justify-between">
+          <span>字幕模糊</span>
+          <Switch checked={subtitleBlurred} onChange={onSubtitleBlurChange} />
+        </div>
       </div>
     </Modal>
   );

@@ -33,6 +33,8 @@ function PlayPage() {
     startTime: 0,
     endTime: 0,
   });
+  /** 字幕模糊状态 */
+  const [subtitleBlurred, setSubtitleBlurred] = useState<boolean>(false);
 
   /**
    * 根据播放模式检查并处理字幕播放逻辑
@@ -367,6 +369,7 @@ function PlayPage() {
                 currentIndex={currentSubtitleIndex}
                 onSubtitleClick={handleSubtitleClick}
                 onEnterEditMode={handleEnterEditMode}
+                subtitleBlurred={subtitleBlurred}
               />
             )}
           </div>
@@ -407,6 +410,8 @@ function PlayPage() {
         onPlayModeChange={(mode) => setPlayMode(mode)}
         onPlaybackSpeedChange={(speed) => handlePlaybackSpeedChange(speed)}
         playMode={playMode}
+        subtitleBlurred={subtitleBlurred}
+        onSubtitleBlurChange={setSubtitleBlurred}
       />
       {/* 编辑模式 Popup */}
       <EditModePopup
