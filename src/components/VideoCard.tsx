@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router";
-import { Drawer, Button } from "antd";
+import { Button } from "antd";
+import { Dialog } from "antd-mobile";
 import MediaDatabaseService from "../services/mediaDatabase";
 import type { MediaFile } from "../types";
 
@@ -21,10 +22,6 @@ interface VideoCardProps {
  */
 const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoDeleted }) => {
   const navigate = useNavigate();
-  /** 抽屉打开状态 */
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  /** 删除加载状态 */
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
   /**
    * 处理卡片点击事件，导航到播放页
@@ -38,29 +35,30 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoDeleted }) => {
    */
   const handleMoreClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setDrawerOpen(true);
-  };
-
-  /**
-   * 处理删除视频
-   */
-  const handleDelete = async () => {
-    setDeleteLoading(true);
-    try {
-      // 删除关联字幕
-      const subtitle = await MediaDatabaseService.getSubtitleByVideoId(
-        video.id
-      );
-      if (subtitle) {
-        await MediaDatabaseService.deleteSubtitle(subtitle.id);
-      }
-      // 删除视频
-      await MediaDatabaseService.deleteVideo(video.id);
-      setDrawerOpen(false);
-      onVideoDeleted?.();
-    } finally {
-      setDeleteLoading(false);
-    }
+    Dialog.show({
+      title: "更多操作",
+      closeOnMaskClick: true,
+      closeOnAction: true,
+      actions: [
+        {
+          key: "delete",
+          text: "删除",
+          danger: true,
+          onClick: async () => {
+            // 删除关联字幕
+            const subtitle = await MediaDatabaseService.getSubtitleByVideoId(
+              video.id
+            );
+            if (subtitle) {
+              await MediaDatabaseService.deleteSubtitle(subtitle.id);
+            }
+            // 删除视频
+            await MediaDatabaseService.deleteVideo(video.id);
+            onVideoDeleted?.();
+          },
+        },
+      ],
+    });
   };
 
   return (
@@ -107,30 +105,6 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoDeleted }) => {
           />
         </div>
       </div>
-
-      {/* 更多操作 */}
-      <Drawer
-        placement="bottom"
-        height={48}
-        onClose={() => setDrawerOpen(false)}
-        closeIcon={false}
-        open={drawerOpen}
-        classNames={{
-          content: "!bg-transparent",
-          body: "!p-2",
-        }}
-      >
-        <Button
-          color="danger"
-          loading={deleteLoading}
-          onClick={handleDelete}
-          variant="outlined"
-          block
-          className="border-none"
-        >
-          删除
-        </Button>
-      </Drawer>
     </>
   );
 };
