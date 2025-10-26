@@ -363,6 +363,7 @@ function PlayPage() {
           onTimeUpdate={handleTimeUpdate}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
+          playsInline
         />
 
         {/* 字幕列表 */}
