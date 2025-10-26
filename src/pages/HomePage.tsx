@@ -1,4 +1,4 @@
-import { Button, Spin } from "antd";
+import { Button, Spin, Row, Col } from "antd";
 import { useEffect, useState } from "react";
 import ImportVideo from "../components/ImportVideo";
 import VideoCard from "../components/VideoCard";
@@ -58,15 +58,13 @@ function HomePage() {
             <div className="text-gray-500">暂无视频，请导入视频</div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <Row gutter={[16, 16]}>
             {videos.map((video) => (
-              <VideoCard
-                key={video.id}
-                video={video}
-                onVideoDeleted={fetchVideos}
-              />
+              <Col key={video.id} xs={24} sm={12} md={8} lg={6}>
+                <VideoCard video={video} onVideoDeleted={fetchVideos} />
+              </Col>
             ))}
-          </div>
+          </Row>
         )}
       </div>
     </div>
