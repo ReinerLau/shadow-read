@@ -358,7 +358,7 @@ function PlayPage() {
           ref={videoRef}
           src={videoUrl}
           autoPlay
-          className="w-full"
+          className="w-full min-h-48 bg-black"
           onLoadedMetadata={handleLoadedMetadata}
           onTimeUpdate={handleTimeUpdate}
           onPlay={() => setIsPlaying(true)}
