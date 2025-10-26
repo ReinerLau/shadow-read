@@ -27,9 +27,12 @@ function PlayPage() {
   const [editMode, setEditMode] = useState<boolean>(false);
   /** 编辑模式下的精确时间（毫秒），为 null 时使用原始值 */
   const [editedTime, setEditedTime] = useState<{
-    startTime: number | null;
-    endTime: number | null;
-  } | null>(null);
+    startTime: number;
+    endTime: number;
+  }>({
+    startTime: 0,
+    endTime: 0,
+  });
 
   /**
    * 根据播放模式检查并处理字幕播放逻辑
@@ -98,11 +101,10 @@ function PlayPage() {
    * 视频加载元数据后跳转到保存的字幕索引
    */
   const handleLoadedMetadata = () => {
-    if (subtitle && savedSubtitleIndex) {
-      const savedEntry = subtitle.entries[savedSubtitleIndex];
-      videoRef.current!.currentTime = savedEntry.startTime / 1000;
-      setCurrentSubtitleIndex(savedSubtitleIndex);
-    }
+    if (!subtitle || savedSubtitleIndex < 0) return;
+    const savedEntry = subtitle.entries[savedSubtitleIndex];
+    videoRef.current!.currentTime = savedEntry.startTime / 1000;
+    setCurrentSubtitleIndex(savedSubtitleIndex);
   };
 
   /**
@@ -141,12 +143,11 @@ function PlayPage() {
   const handlePreviousSubtitle = () => {
     if (!videoRef.current || !subtitle) return;
 
-    if (currentSubtitleIndex > 0) {
-      const previousEntry = subtitle.entries[currentSubtitleIndex - 1];
-      videoRef.current.currentTime = previousEntry.startTime / 1000; // 转换为秒
-      setCurrentSubtitleIndex(currentSubtitleIndex - 1);
-      videoRef.current.play();
-    }
+    if (currentSubtitleIndex < 1) return;
+    const previousEntry = subtitle.entries[currentSubtitleIndex - 1];
+    videoRef.current.currentTime = previousEntry.startTime / 1000; // 转换为秒
+    setCurrentSubtitleIndex(currentSubtitleIndex - 1);
+    videoRef.current.play();
   };
 
   /**
@@ -154,13 +155,11 @@ function PlayPage() {
    */
   const handleNextSubtitle = () => {
     if (!videoRef.current || !subtitle) return;
-
-    if (currentSubtitleIndex < subtitle.entries.length - 1) {
-      const nextEntry = subtitle.entries[currentSubtitleIndex + 1];
-      videoRef.current.currentTime = nextEntry.startTime / 1000; // 转换为秒
-      setCurrentSubtitleIndex(currentSubtitleIndex + 1);
-      videoRef.current.play();
-    }
+    if (currentSubtitleIndex === subtitle.entries.length - 1) return;
+    const nextEntry = subtitle.entries[currentSubtitleIndex + 1];
+    videoRef.current.currentTime = nextEntry.startTime / 1000; // 转换为秒
+    setCurrentSubtitleIndex(currentSubtitleIndex + 1);
+    videoRef.current.play();
   };
 
   /**
@@ -248,7 +247,10 @@ function PlayPage() {
   const handleExitEditMode = () => {
     setEditMode(false);
     // 重置编辑时间
-    setEditedTime(null);
+    setEditedTime({
+      startTime: 0,
+      endTime: 0,
+    });
   };
 
   /**
@@ -263,7 +265,6 @@ function PlayPage() {
     isForward: boolean
   ) => {
     setEditedTime((prev) => {
-      if (prev === null) return null;
       const newTime = isStartTime ? prev.startTime! : prev.endTime!;
       const newOffset = isForward ? newTime + offset : newTime - offset;
       return {
@@ -416,8 +417,6 @@ function PlayPage() {
       {/* 编辑模式 Popup */}
       <EditModePopup
         editMode={editMode}
-        subtitle={subtitle}
-        currentSubtitleIndex={currentSubtitleIndex}
         editedTime={editedTime}
         isPlaying={isPlaying}
         onExitEditMode={handleExitEditMode}

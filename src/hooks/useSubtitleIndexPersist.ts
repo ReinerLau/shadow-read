@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { MediaDatabaseService } from "../services/mediaDatabase";
 
 /**
@@ -11,6 +11,12 @@ export const useSubtitleIndexPersist = (
   mediaId: string | undefined,
   currentSubtitleIndex: number
 ) => {
+  const subtitleIndexRef = useRef(currentSubtitleIndex);
+
+  useEffect(() => {
+    subtitleIndexRef.current = currentSubtitleIndex;
+  }, [currentSubtitleIndex]);
+
   useEffect(() => {
     /**
      * 保存字幕索引到数据库
@@ -18,7 +24,7 @@ export const useSubtitleIndexPersist = (
     const saveSubtitleIndex = async () => {
       await MediaDatabaseService.updateSubtitleIndex(
         Number(mediaId),
-        currentSubtitleIndex
+        subtitleIndexRef.current
       );
     };
 
@@ -36,5 +42,5 @@ export const useSubtitleIndexPersist = (
       window.removeEventListener("beforeunload", handleBeforeUnload);
       saveSubtitleIndex();
     };
-  }, [mediaId, currentSubtitleIndex]);
+  }, [mediaId]);
 };

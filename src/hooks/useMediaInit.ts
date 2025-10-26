@@ -7,13 +7,13 @@ import type { Subtitle } from "../types";
  */
 interface UseMediaInitReturn {
   /** 视频 URL */
-  videoUrl: string | undefined;
+  videoUrl?: string;
   /** 字幕数据 */
-  subtitle: Subtitle | null;
+  subtitle?: Subtitle;
   /** 保存的字幕索引 */
-  savedSubtitleIndex: number | null;
+  savedSubtitleIndex: number;
   /** 错误信息 */
-  error: string | null;
+  error?: string;
 }
 
 /**
@@ -24,11 +24,9 @@ interface UseMediaInitReturn {
  */
 export function useMediaInit(mediaId: string | undefined): UseMediaInitReturn {
   const [videoUrl, setVideoUrl] = useState<string>();
-  const [subtitle, setSubtitle] = useState<Subtitle | null>(null);
-  const [savedSubtitleIndex, setSavedSubtitleIndex] = useState<number | null>(
-    null
-  );
-  const [error, setError] = useState<string | null>(null);
+  const [subtitle, setSubtitle] = useState<Subtitle>();
+  const [savedSubtitleIndex, setSavedSubtitleIndex] = useState<number>(-1);
+  const [error, setError] = useState<string>();
 
   useEffect(() => {
     let url: string;
@@ -44,9 +42,7 @@ export function useMediaInit(mediaId: string | undefined): UseMediaInitReturn {
           setSubtitle(subtitleData);
 
           // 如果有保存的字幕索引，保存起来等视频加载完成后跳转
-          if (subtitleData.lastSubtitleIndex) {
-            setSavedSubtitleIndex(subtitleData.lastSubtitleIndex);
-          }
+          setSavedSubtitleIndex(subtitleData.lastSubtitleIndex!);
         } else {
           setError("未找到字幕文件");
         }

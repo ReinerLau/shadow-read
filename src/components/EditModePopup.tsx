@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button, InputNumber } from "antd";
 import { Popup } from "antd-mobile";
-import type { Subtitle } from "../types";
 
 /**
  * 将毫秒转换为 HH:MM:SS.mmm 格式的时间字符串
@@ -24,15 +23,11 @@ const formatTime = (milliseconds: number): string => {
 interface EditModePopupProps {
   /** 编辑模式是否显示 */
   editMode: boolean;
-  /** 字幕数据 */
-  subtitle: Subtitle | null;
-  /** 当前字幕索引 */
-  currentSubtitleIndex: number;
   /** 编辑的精确时间 */
   editedTime: {
-    startTime: number | null;
-    endTime: number | null;
-  } | null;
+    startTime: number;
+    endTime: number;
+  };
   /** 是否正在播放 */
   isPlaying: boolean;
   /** 退出编辑模式的回调 */
@@ -56,8 +51,6 @@ interface EditModePopupProps {
  */
 export const EditModePopup = ({
   editMode,
-  subtitle,
-  currentSubtitleIndex,
   editedTime,
   isPlaying,
   onExitEditMode,
@@ -90,64 +83,56 @@ export const EditModePopup = ({
           />
         </div>
         {/* 精确时间显示 */}
-        {subtitle && currentSubtitleIndex !== -1 && (
-          <div className="space-y-2">
-            <div className=" p-4 bg-blue-50 rounded-lg flex items-center">
-              <div className="flex-1">
-                <div className="text-xs text-gray-500 mb-1">开始时间</div>
-                <div className=" font-mono text-sm font-semibold text-blue-600">
-                  {formatTime(
-                    editedTime?.startTime ??
-                      subtitle.entries[currentSubtitleIndex].preciseStartTime
-                  )}
-                </div>
-              </div>
-              <div className="flex flex-col">
-                {/* 向前偏移 */}
-                <Button
-                  className="flex-1"
-                  type="text"
-                  onClick={() => onTimeOffset(offsetStep, true, true)}
-                  icon={<div className="i-mdi:menu-up text-3xl" />}
-                />
-                {/* 向后偏移 */}
-                <Button
-                  className="flex-1"
-                  type="text"
-                  onClick={() => onTimeOffset(offsetStep, true, false)}
-                  icon={<div className="i-mdi:menu-down text-3xl" />}
-                />
+        <div className="space-y-2">
+          <div className=" p-4 bg-blue-50 rounded-lg flex items-center">
+            <div className="flex-1">
+              <div className="text-xs text-gray-500 mb-1">开始时间</div>
+              <div className=" font-mono text-sm font-semibold text-blue-600">
+                {formatTime(editedTime.startTime)}
               </div>
             </div>
-            <div className=" p-4 bg-blue-50 rounded-lg flex items-center">
-              <div className="flex-1">
-                <div className="text-xs text-gray-500 mb-1">结束时间</div>
-                <div className=" font-mono text-sm font-semibold text-blue-600">
-                  {formatTime(
-                    editedTime?.endTime ??
-                      subtitle.entries[currentSubtitleIndex].preciseEndTime
-                  )}
-                </div>
-              </div>
-              <div className="flex flex-col">
-                {/* 向前偏移 */}
-                <Button
-                  className="flex-1"
-                  type="text"
-                  onClick={() => onTimeOffset(offsetStep, false, true)}
-                  icon={<div className="i-mdi:menu-up text-3xl" />}
-                />
-                {/* 向后偏移 */}
-                <Button
-                  className="flex-1"
-                  type="text"
-                  onClick={() => onTimeOffset(offsetStep, false, false)}
-                  icon={<div className="i-mdi:menu-down text-3xl" />}
-                />
-              </div>
+            <div className="flex flex-col">
+              {/* 向前偏移 */}
+              <Button
+                className="flex-1"
+                type="text"
+                onClick={() => onTimeOffset(offsetStep, true, true)}
+                icon={<div className="i-mdi:menu-up text-3xl" />}
+              />
+              {/* 向后偏移 */}
+              <Button
+                className="flex-1"
+                type="text"
+                onClick={() => onTimeOffset(offsetStep, true, false)}
+                icon={<div className="i-mdi:menu-down text-3xl" />}
+              />
             </div>
           </div>
-        )}
+          <div className=" p-4 bg-blue-50 rounded-lg flex items-center">
+            <div className="flex-1">
+              <div className="text-xs text-gray-500 mb-1">结束时间</div>
+              <div className=" font-mono text-sm font-semibold text-blue-600">
+                {formatTime(editedTime.endTime)}
+              </div>
+            </div>
+            <div className="flex flex-col">
+              {/* 向前偏移 */}
+              <Button
+                className="flex-1"
+                type="text"
+                onClick={() => onTimeOffset(offsetStep, false, true)}
+                icon={<div className="i-mdi:menu-up text-3xl" />}
+              />
+              {/* 向后偏移 */}
+              <Button
+                className="flex-1"
+                type="text"
+                onClick={() => onTimeOffset(offsetStep, false, false)}
+                icon={<div className="i-mdi:menu-down text-3xl" />}
+              />
+            </div>
+          </div>
+        </div>
         <div className="flex">
           {/* 预览 */}
           <Button
