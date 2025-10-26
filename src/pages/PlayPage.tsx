@@ -35,6 +35,8 @@ function PlayPage() {
   });
   /** 字幕模糊状态 */
   const [subtitleBlurred, setSubtitleBlurred] = useState<boolean>(false);
+  /** 是否正在拖动进度条 */
+  const isSeeking = useRef<boolean>(false);
 
   /**
    * 根据播放模式检查并处理字幕播放逻辑
@@ -113,6 +115,7 @@ function PlayPage() {
    * 监听视频播放时间并同步字幕索引
    */
   const handleTimeUpdate = () => {
+    if (isSeeking.current) return;
     if (!subtitle) return;
 
     const currentTimeMs = videoRef.current!.currentTime * 1000 || 0; // 转换为毫秒
@@ -132,6 +135,20 @@ function PlayPage() {
     if (index !== -1) {
       setCurrentSubtitleIndex(index);
     }
+  };
+
+  /**
+   * 处理 seeking 开始事件
+   */
+  const handleSeeking = () => {
+    isSeeking.current = true;
+  };
+
+  /**
+   * 处理 seeked 结束事件
+   */
+  const handleSeeked = () => {
+    isSeeking.current = false;
   };
 
   /**
@@ -355,6 +372,8 @@ function PlayPage() {
               className="w-full h-full max-sm:h-auto"
               onLoadedMetadata={handleLoadedMetadata}
               onTimeUpdate={handleTimeUpdate}
+              onSeeking={handleSeeking}
+              onSeeked={handleSeeked}
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
               playsInline
