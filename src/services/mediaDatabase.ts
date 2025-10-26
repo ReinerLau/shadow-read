@@ -5,7 +5,7 @@ import type { MediaFile, MediaDB, Subtitle } from "../types";
  * 数据库名称和版本
  */
 const DB_NAME = "media";
-const DB_VERSION = 7;
+const DB_VERSION = 9;
 
 /**
  * 数据库实例缓存
