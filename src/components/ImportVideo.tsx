@@ -26,41 +26,42 @@ function ImportVideoModal() {
    * 处理视频文件导入
    */
   const handleImportVideo = async () => {
-    try {
-      // 使用 File System Access API 打开文件选择器, 选择文件后得到文件句柄
-      const [handle] = await window.showOpenFilePicker({
-        // 只允许选择 mp4 视频文件
-        types: [
-          {
-            accept: {
-              // key 是 MIME 类型, value 是文件扩展名
-              "video/*": [".mp4"],
-            },
+    // 检查浏览器是否支持 File System Access API
+    if (!window.showOpenFilePicker) {
+      return;
+    }
+
+    // 使用 File System Access API 打开文件选择器, 选择文件后得到文件句柄
+    const [handle] = await window.showOpenFilePicker({
+      // 只允许选择 mp4 视频文件
+      types: [
+        {
+          accept: {
+            // key 是 MIME 类型, value 是文件扩展名
+            "video/*": [".mp4"],
           },
-        ],
-      });
+        },
+      ],
+    });
 
-      // 设置选中的文件句柄和视频名称
-      setSelectedHandle(handle);
-      setVideoName(handle.name);
-      setIsModalOpen(true);
+    // 设置选中的文件句柄和视频名称
+    setSelectedHandle(handle);
+    setVideoName(handle.name);
+    setIsModalOpen(true);
 
-      // 获取视频元数据（缩略图和时长）
-      try {
-        setIsLoadingThumbnail(true);
-        const file = await handle.getFile();
-        const metadata = await extractVideoMetadata(file);
-        setThumbnail(metadata.thumbnail);
-        setDuration(metadata.duration);
-      } catch {
-        // 视频元数据提取失败时静默处理
-        setThumbnail(undefined);
-        setDuration(undefined);
-      } finally {
-        setIsLoadingThumbnail(false);
-      }
+    // 获取视频元数据（缩略图和时长）
+    try {
+      setIsLoadingThumbnail(true);
+      const file = await handle.getFile();
+      const metadata = await extractVideoMetadata(file);
+      setThumbnail(metadata.thumbnail);
+      setDuration(metadata.duration);
     } catch {
-      message.error("该环境不允许导入文件");
+      // 视频元数据提取失败时静默处理
+      setThumbnail(undefined);
+      setDuration(undefined);
+    } finally {
+      setIsLoadingThumbnail(false);
     }
   };
 
