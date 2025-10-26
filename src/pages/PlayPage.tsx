@@ -380,15 +380,15 @@ function PlayPage() {
         </div>
 
         {/* 操作区域 */}
-        <div className="p-3  flex justify-center gap-4 bg-white">
+        <div className="p-3 h-20 flex gap-4 bg-white">
           <Button
-            className="flex-1"
+            className="flex-1 h-full"
             type="text"
             onClick={handlePreviousSubtitle}
             icon={<div className="i-mdi:skip-previous text-xl" />}
           />
           <Button
-            className="flex-1"
+            className="flex-1 h-full"
             type="text"
             onClick={handleTogglePlayPause}
             icon={
@@ -400,7 +400,7 @@ function PlayPage() {
             }
           />
           <Button
-            className="flex-1"
+            className="flex-1 h-full"
             type="text"
             onClick={handleNextSubtitle}
             icon={<div className="i-mdi:skip-next text-xl" />}
