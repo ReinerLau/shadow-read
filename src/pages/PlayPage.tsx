@@ -352,15 +352,6 @@ function PlayPage() {
           />
         </div>
 
-        {/* 更多弹窗 */}
-        <MoreModal
-          open={isMoreModalOpen}
-          onCancel={handleMoreModalClose}
-          onPlayModeChange={(mode) => setPlayMode(mode)}
-          onPlaybackSpeedChange={(speed) => handlePlaybackSpeedChange(speed)}
-          playMode={playMode}
-        />
-
         {/* 视频播放器 */}
         <video
           ref={videoRef}
@@ -414,6 +405,14 @@ function PlayPage() {
           />
         </div>
       </div>
+      {/* 更多弹窗 */}
+      <MoreModal
+        open={isMoreModalOpen}
+        onCancel={handleMoreModalClose}
+        onPlayModeChange={(mode) => setPlayMode(mode)}
+        onPlaybackSpeedChange={(speed) => handlePlaybackSpeedChange(speed)}
+        playMode={playMode}
+      />
       {/* 编辑模式 Popup */}
       <EditModePopup
         editMode={editMode}
