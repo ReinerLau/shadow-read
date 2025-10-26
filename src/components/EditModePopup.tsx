@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button, InputNumber } from "antd";
 import { Popup } from "antd-mobile";
 import type { Subtitle } from "../types";
@@ -32,8 +33,6 @@ interface EditModePopupProps {
     startTime: number | null;
     endTime: number | null;
   } | null;
-  /** 时间偏移步长（毫秒） */
-  offsetStep: number;
   /** 是否正在播放 */
   isPlaying: boolean;
   /** 退出编辑模式的回调 */
@@ -46,8 +45,6 @@ interface EditModePopupProps {
     isStartTime: boolean,
     isForward: boolean
   ) => void;
-  /** 更新偏移步长的回调 */
-  onOffsetStepChange: (value: number) => void;
   /** 切换播放/暂停的回调 */
   onTogglePlayPause: () => void;
 }
@@ -55,20 +52,22 @@ interface EditModePopupProps {
 /**
  * 编辑模式 Popup 组件
  * 用于编辑字幕的开始和结束时间
+ * 内部管理时间偏移步长状态
  */
 export const EditModePopup = ({
   editMode,
   subtitle,
   currentSubtitleIndex,
   editedTime,
-  offsetStep,
   isPlaying,
   onExitEditMode,
   onSaveTimeOffset,
   onTimeOffset,
-  onOffsetStepChange,
   onTogglePlayPause,
 }: EditModePopupProps) => {
+  /** 时间偏移步长（毫秒），默认 100ms */
+  const [offsetStep, setOffsetStep] = useState<number>(100);
+
   return (
     <Popup visible={editMode} closeOnMaskClick={false} position="bottom">
       <div className="p-4 space-y-2">
@@ -86,7 +85,7 @@ export const EditModePopup = ({
           <InputNumber
             step={1}
             value={offsetStep}
-            onChange={(value) => onOffsetStepChange(value ?? 100)}
+            onChange={(value) => setOffsetStep(value ?? 100)}
             className="w-full"
           />
         </div>

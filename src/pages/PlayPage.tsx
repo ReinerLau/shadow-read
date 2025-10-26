@@ -30,8 +30,6 @@ function PlayPage() {
     startTime: number | null;
     endTime: number | null;
   } | null>(null);
-  /** 时间偏移步长（毫秒），默认 100ms */
-  const [offsetStep, setOffsetStep] = useState<number>(100);
 
   /**
    * 根据播放模式检查并处理字幕播放逻辑
@@ -471,12 +469,10 @@ function PlayPage() {
         subtitle={subtitle}
         currentSubtitleIndex={currentSubtitleIndex}
         editedTime={editedTime}
-        offsetStep={offsetStep}
         isPlaying={isPlaying}
         onExitEditMode={handleExitEditMode}
         onSaveTimeOffset={handleSaveTimeOffset}
         onTimeOffset={handleTimeOffset}
-        onOffsetStepChange={setOffsetStep}
         onTogglePlayPause={handleTogglePlayPause}
       />
     </>
