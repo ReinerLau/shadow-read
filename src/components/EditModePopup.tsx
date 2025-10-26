@@ -133,10 +133,10 @@ export const EditModePopup = ({
             </div>
           </div>
         </div>
-        <div className="flex">
+        <div className="h-20 flex">
           {/* 预览 */}
           <Button
-            className="flex-1"
+            className="flex-1 h-full"
             type="text"
             onClick={onTogglePlayPause}
             icon={
