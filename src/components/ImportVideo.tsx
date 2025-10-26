@@ -190,6 +190,7 @@ function ImportVideoModal() {
       videoId: mediaId,
       entries: subtitleEntries,
       createdAt: Date.now(),
+      lastSubtitleIndex: -1,
     });
 
     // 清空状态并跳转到播放页
