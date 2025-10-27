@@ -30,22 +30,22 @@ function ImportVideoModal() {
   const handleFileSelected = async (file: File) => {
     setIsLoading(true);
 
-    // // 第一步：计算文件哈希值
-    // const computedHash = await MediaDatabaseService.prepareFileForStorage(file);
-    // setFileHash(computedHash);
+    // 第一步：计算文件哈希值
+    const computedHash = await MediaDatabaseService.prepareFileForStorage(file);
+    setFileHash(computedHash);
 
-    // // 第二步：检查数据库中是否已存在该 hash 的视频
-    // const existingVideo = await MediaDatabaseService.getVideoByFileHash(
-    //   computedHash
-    // );
+    // 第二步：检查数据库中是否已存在该 hash 的视频
+    const existingVideo = await MediaDatabaseService.getVideoByFileHash(
+      computedHash
+    );
 
-    // if (existingVideo) {
-    //   // 视频已存在，直接跳转到播放页面
-    //   message.info("视频已存在，直接播放");
-    //   navigate(`/play/${existingVideo.id}`);
-    //   setIsLoading(false);
-    //   return;
-    // }
+    if (existingVideo) {
+      // 视频已存在，直接跳转到播放页面
+      message.info("视频已存在，直接播放");
+      navigate(`/play/${existingVideo.id}`);
+      setIsLoading(false);
+      return;
+    }
 
     // 第三步：视频不存在，继续正常流程 - 设置选中的文件和视频名称
     setSelectedFile(file);

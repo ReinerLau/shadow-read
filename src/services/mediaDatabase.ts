@@ -1,4 +1,5 @@
 import { openDB, type IDBPDatabase } from "idb";
+import { sha256 } from "hash-wasm";
 import type { MediaFile, MediaDB, Subtitle } from "../types";
 
 /**
@@ -48,26 +49,45 @@ async function getDB(): Promise<IDBPDatabase<MediaDB>> {
 }
 
 /**
- * 分块计算文件的 SHA256 哈希值（适用于大文件）
+ * 分块计算文件的 SHA256 哈希值，使用文件的头部、中部和尾部部分（适用于大文件）
  * @param file - 文件对象
- * @param chunkSize - 分块大小（默认 4MB）
+ * @param headSize - 头部大小（默认 256KB）
+ * @param middleSize - 中部大小（默认 256KB）
+ * @param tailSize - 尾部大小（默认 256KB）
  * @returns Promise<string> 返回文件的哈希值
  */
 async function computeFileHash(
   file: File | Blob,
-  chunkSize: number = 4 * 1024 * 1024
+  headSize: number = 256 * 1024,
+  middleSize: number = 256 * 1024,
+  tailSize: number = 256 * 1024
 ): Promise<string> {
+  const fileSize = file.size;
   const chunks: Uint8Array[] = [];
-  let offset = 0;
 
-  while (offset < file.size) {
-    const end = Math.min(offset + chunkSize, file.size);
-    const chunk = file.slice(offset, end);
-    chunks.push(new Uint8Array(await chunk.arrayBuffer()));
-    offset = end;
+  // 读取头部
+  if (fileSize > 0) {
+    const headEnd = Math.min(headSize, fileSize);
+    const headBlob = file.slice(0, headEnd);
+    chunks.push(new Uint8Array(await headBlob.arrayBuffer()));
   }
 
-  // Combine chunks and hash
+  // 读取中部（如果文件足够大）
+  if (fileSize > headSize + tailSize) {
+    const middleStart = Math.floor((fileSize - middleSize) / 2);
+    const middleEnd = Math.min(middleStart + middleSize, fileSize - tailSize);
+    const middleBlob = file.slice(middleStart, middleEnd);
+    chunks.push(new Uint8Array(await middleBlob.arrayBuffer()));
+  }
+
+  // 读取尾部（如果文件足够大）
+  if (fileSize > headSize) {
+    const tailStart = Math.max(fileSize - tailSize, headSize + middleSize);
+    const tailBlob = file.slice(tailStart, fileSize);
+    chunks.push(new Uint8Array(await tailBlob.arrayBuffer()));
+  }
+
+  // 合并所有数据块
   const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
   const combined = new Uint8Array(totalLength);
   let pos = 0;
@@ -76,9 +96,9 @@ async function computeFileHash(
     pos += chunk.length;
   }
 
-  const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  // 使用 hash-wasm 计算 SHA256
+  const hash = await sha256(combined);
+  return hash;
 }
 
 /**
