@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button } from "antd";
 import { EditModePopup } from "../components/EditModePopup";
+import { RecordingPopup } from "../components/RecordingPopup";
 import SubtitleList from "../components/SubtitleList";
 import { MoreModal } from "../components/MoreModal";
 import { PlayModeValues, type PlayMode } from "../types";
@@ -37,10 +38,12 @@ function PlayPage() {
   const [subtitleBlurred, setSubtitleBlurred] = useState<boolean>(false);
   /** 是否正在拖动进度条 */
   const isSeeking = useRef<boolean>(false);
+  /** 录音模式是否显示 */
+  const [recordingMode, setRecordingMode] = useState<boolean>(false);
 
   /**
    * 根据播放模式检查并处理字幕播放逻辑
-   * 优先判断是否为编辑模式，编辑模式逻辑与单句暂停相同
+   * 优先判断是否为编辑模式或录音模式，这两种模式的逻辑与单句暂停相同
    * @param shouldSeekToStart 是否应该跳转到字幕开始位置（播放时为 true，时间更新时为 false）
    * @returns {boolean} 是否应该更新 currentSubtitleIndex
    */
@@ -51,12 +54,18 @@ function PlayPage() {
     const currentTimeMs = videoRef.current.currentTime * 1000;
     const currentEntry = subtitle.entries[currentSubtitleIndex];
 
-    // 优先判断编辑模式：逻辑与单句暂停相同
-    if (editMode) {
-      // 使用编辑后的精确时间，如果没有编辑则使用原始精确时间
+    // 优先判断编辑模式或录音模式：逻辑与单句暂停相同
+    if (editMode || recordingMode) {
+      // 在编辑模式下使用编辑后的精确时间，如果没有编辑则使用原始精确时间
+      // 在录音模式下使用原始精确时间
       const preciseStartTime =
-        editedTime?.startTime ?? currentEntry.preciseStartTime;
-      const preciseEndTime = editedTime?.endTime ?? currentEntry.preciseEndTime;
+        editMode && editedTime?.startTime !== undefined
+          ? editedTime.startTime
+          : currentEntry.preciseStartTime;
+      const preciseEndTime =
+        editMode && editedTime?.endTime !== undefined
+          ? editedTime.endTime
+          : currentEntry.preciseEndTime;
 
       // 如果当前时间超过了当前字幕的精确结束时间
       if (currentTimeMs >= preciseEndTime) {
@@ -321,6 +330,28 @@ function PlayPage() {
     videoRef.current.playbackRate = speed;
   };
 
+  /**
+   * 处理进入录音模式
+   */
+  const handleEnterRecordingMode = (subtitleIndex: number) => {
+    if (!subtitle || subtitleIndex === -1 || !videoRef.current) return;
+    const targetEntry = subtitle.entries[subtitleIndex];
+    // 跳转到对应字幕的开始位置
+    videoRef.current.currentTime = targetEntry.startTime / 1000;
+    // 暂停播放
+    videoRef.current.pause();
+    // 更新当前字幕索引
+    setCurrentSubtitleIndex(subtitleIndex);
+    setRecordingMode(true);
+  };
+
+  /**
+   * 处理退出录音模式
+   */
+  const handleExitRecordingMode = () => {
+    setRecordingMode(false);
+  };
+
   if (error) {
     return (
       <div className="h-dvh flex flex-col bg-gray-50">
@@ -391,6 +422,7 @@ function PlayPage() {
                 currentIndex={currentSubtitleIndex}
                 onSubtitleClick={handleSubtitleClick}
                 onEnterEditMode={handleEnterEditMode}
+                onEnterRecordingMode={handleEnterRecordingMode}
                 subtitleBlurred={subtitleBlurred}
               />
             )}
@@ -443,6 +475,12 @@ function PlayPage() {
         onExitEditMode={handleExitEditMode}
         onSaveTimeOffset={handleSaveTimeOffset}
         onTimeOffset={handleTimeOffset}
+        onTogglePlayPause={handleTogglePlayPause}
+      />
+      {/* 录音模式 Popup */}
+      <RecordingPopup
+        recordingMode={recordingMode}
+        onExitRecordingMode={handleExitRecordingMode}
         onTogglePlayPause={handleTogglePlayPause}
       />
     </>

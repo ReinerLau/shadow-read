@@ -21,6 +21,8 @@ interface SubtitleListProps {
   onSubtitleClick?: (subtitleIndex: number) => void;
   /** 进入编辑模式回调 */
   onEnterEditMode?: (subtitleIndex: number) => void;
+  /** 进入录音模式回调 */
+  onEnterRecordingMode?: (subtitleIndex: number) => void;
   /** 是否对字幕添加模糊滤镜 */
   subtitleBlurred?: boolean;
 }
@@ -35,12 +37,14 @@ const SubtitleRow = ({
   currentIndex,
   onSubtitleClick,
   onEnterEditMode,
+  onEnterRecordingMode,
   subtitleBlurred,
 }: RowComponentProps<{
   subtitle: Subtitle;
   currentIndex: number;
   onSubtitleClick?: (subtitleIndex: number) => void;
   onEnterEditMode?: (subtitleIndex: number) => void;
+  onEnterRecordingMode?: (subtitleIndex: number) => void;
   subtitleBlurred?: boolean;
 }>) => {
   const entry = subtitle.entries[index];
@@ -70,6 +74,11 @@ const SubtitleRow = ({
           text: "偏移",
           onClick: handleOffset,
         },
+        {
+          key: "record",
+          text: "录音",
+          onClick: handleRecord,
+        },
       ],
     });
   };
@@ -80,6 +89,15 @@ const SubtitleRow = ({
   const handleOffset = () => {
     if (onEnterEditMode) {
       onEnterEditMode(index);
+    }
+  };
+
+  /**
+   * 处理录音操作
+   */
+  const handleRecord = () => {
+    if (onEnterRecordingMode) {
+      onEnterRecordingMode(index);
     }
   };
 
@@ -123,6 +141,7 @@ function SubtitleList({
   currentIndex,
   onSubtitleClick,
   onEnterEditMode,
+  onEnterRecordingMode,
   subtitleBlurred,
 }: SubtitleListProps) {
   const listRef = useListRef(null);
@@ -160,6 +179,7 @@ function SubtitleList({
         currentIndex,
         onSubtitleClick,
         onEnterEditMode,
+        onEnterRecordingMode,
         subtitleBlurred,
       }}
     />
