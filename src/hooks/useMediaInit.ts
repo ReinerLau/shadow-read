@@ -71,23 +71,9 @@ export function useMediaInit(mediaId: string | undefined): UseMediaInitReturn {
         } else if (media.blobUrl) {
           // 降级方案：使用存储的 blobUrl
           // 验证 blobUrl 是否仍然有效
-          try {
-            const response = await fetch(media.blobUrl);
-            if (response.ok) {
-              // blobUrl 有效，直接使用
-              setVideoUrl(media.blobUrl);
-              // 添加到 sessionStorage
-              SessionStorageService.addVideoId(media.id);
-            } else {
-              // blobUrl 已失效
-              setError("视频链接已失效，请重新导入该视频");
-              return;
-            }
-          } catch {
-            // blobUrl 已失效
-            setError("视频链接已失效，请重新导入该视频");
-            return;
-          }
+          setVideoUrl(media.blobUrl);
+          // 添加到 sessionStorage
+          SessionStorageService.addVideoId(media.id);
         } else if (media.blob) {
           // 兼容旧数据：使用存储的 Blob 对象
           url = URL.createObjectURL(media.blob);
