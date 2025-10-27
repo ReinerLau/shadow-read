@@ -6,7 +6,7 @@ import type { MediaFile, MediaDB, Subtitle } from "../types";
  * 数据库名称和版本
  */
 const DB_NAME = "media";
-const DB_VERSION = 9;
+const DB_VERSION = 10;
 
 /**
  * 数据库实例缓存
@@ -280,6 +280,21 @@ export class MediaDatabaseService {
   ): Promise<MediaFile | undefined> {
     const db = await getDB();
     return await db.getFromIndex("videos", "fileHash", fileHash);
+  }
+
+  /**
+   * 更新视频的 blobUrl
+   * @param id - 视频文件句柄ID
+   * @param blobUrl - Blob URL
+   * @returns Promise<void>
+   */
+  static async updateVideoBlobUrl(id: number, blobUrl: string): Promise<void> {
+    const db = await getDB();
+    const video = await db.get("videos", id);
+    if (video) {
+      video.blobUrl = blobUrl;
+      await db.put("videos", video);
+    }
   }
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import MediaDatabaseService from "../services/mediaDatabase";
+import SessionStorageService from "../services/sessionStorage";
 import type { Subtitle } from "../types";
 
 /**
@@ -65,12 +66,36 @@ export function useMediaInit(mediaId: string | undefined): UseMediaInitReturn {
           const file = await media.handle.getFile();
           url = URL.createObjectURL(file);
           setVideoUrl(url);
+          // 添加到 sessionStorage
+          SessionStorageService.addVideoId(media.id);
+        } else if (media.blobUrl) {
+          // 降级方案：使用存储的 blobUrl
+          // 验证 blobUrl 是否仍然有效
+          try {
+            const response = await fetch(media.blobUrl);
+            if (response.ok) {
+              // blobUrl 有效，直接使用
+              setVideoUrl(media.blobUrl);
+              // 添加到 sessionStorage
+              SessionStorageService.addVideoId(media.id);
+            } else {
+              // blobUrl 已失效
+              setError("视频链接已失效，请重新导入该视频");
+              return;
+            }
+          } catch {
+            // blobUrl 已失效
+            setError("视频链接已失效，请重新导入该视频");
+            return;
+          }
         } else if (media.blob) {
-          // 降级方案：使用存储的 Blob 对象
+          // 兼容旧数据：使用存储的 Blob 对象
           url = URL.createObjectURL(media.blob);
           setVideoUrl(url);
+          // 添加到 sessionStorage
+          SessionStorageService.addVideoId(media.id);
         } else {
-          // 既没有文件句柄也没有 Blob，说明文件已丢失
+          // 既没有文件句柄也没有 blobUrl/Blob，说明文件已丢失
           setError("视频文件已丢失，请重新导入该视频");
           return;
         }

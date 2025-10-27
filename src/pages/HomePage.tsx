@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import ImportVideo from "../components/ImportVideo";
 import VideoCard from "../components/VideoCard";
 import MediaDatabaseService from "../services/mediaDatabase";
+import SessionStorageService from "../services/sessionStorage";
 import type { MediaFile } from "../types";
 
 /**
@@ -21,7 +22,19 @@ function HomePage() {
     try {
       setLoading(true);
       const allVideos = await MediaDatabaseService.getAllVideos();
-      setVideos(allVideos);
+
+      // 检查是否支持 File System Access API
+      if ("showOpenFilePicker" in window) {
+        // 支持时，显示所有视频
+        setVideos(allVideos);
+      } else {
+        // 不支持时，只显示 sessionStorage 中存在的视频
+        const availableIds = SessionStorageService.getAvailableVideoIds();
+        const filteredVideos = allVideos.filter((video) =>
+          availableIds.includes(video.id)
+        );
+        setVideos(filteredVideos);
+      }
     } catch {
       // 错误处理
     } finally {

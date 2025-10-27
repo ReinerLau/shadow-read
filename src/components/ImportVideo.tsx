@@ -2,6 +2,7 @@ import { Button, Modal, Input, Upload, message } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import MediaDatabaseService from "../services/mediaDatabase";
+import SessionStorageService from "../services/sessionStorage";
 import SubtitleParserService from "../services/subtitleParser";
 import { extractVideoMetadata } from "../services/videoData";
 import type { SubtitleEntry } from "../types";
@@ -40,11 +41,28 @@ function ImportVideoModal() {
     );
 
     if (existingVideo) {
-      // 视频已存在，直接跳转到播放页面
-      message.info("视频已存在，直接播放");
-      navigate(`/play/${existingVideo.id}`);
-      setIsLoading(false);
-      return;
+      // 视频已存在
+      // 检查是否支持 File System Access API
+      if ("showOpenFilePicker" in window) {
+        // 支持 File System Access API，直接跳转播放
+        message.info("视频已存在，直接播放");
+        SessionStorageService.addVideoId(existingVideo.id);
+        navigate(`/play/${existingVideo.id}`);
+        setIsLoading(false);
+        return;
+      } else {
+        // 不支持 File System Access API，需要更新 blobUrl
+        const blobUrl = URL.createObjectURL(file);
+        await MediaDatabaseService.updateVideoBlobUrl(
+          existingVideo.id,
+          blobUrl
+        );
+        message.info("视频已存在，直接播放");
+        SessionStorageService.addVideoId(existingVideo.id);
+        navigate(`/play/${existingVideo.id}`);
+        setIsLoading(false);
+        return;
+      }
     }
 
     // 第三步：视频不存在，继续正常流程 - 设置选中的文件和视频名称
@@ -172,18 +190,37 @@ function ImportVideoModal() {
     }
 
     setIsSaving(true);
+
     // 构建保存参数 - 根据是否有文件句柄选择不同的存储方式
-    const videoParams = {
-      name: videoName.trim(),
-      handle: selectedHandle,
-      fileHash: fileHash || undefined,
-      blob: selectedHandle ? null : selectedFile,
-      thumbnail,
-      duration,
-    };
+    let videoParams;
+
+    if (selectedHandle) {
+      // 支持 File System Access API，存储文件句柄
+      videoParams = {
+        name: videoName.trim(),
+        handle: selectedHandle,
+        fileHash: fileHash || undefined,
+        blob: null,
+        blobUrl: null,
+        thumbnail,
+        duration,
+      };
+    } else if (selectedFile) {
+      // 不支持 File System Access API，生成并存储 blobUrl
+      const blobUrl = URL.createObjectURL(selectedFile);
+      videoParams = {
+        name: videoName.trim(),
+        handle: null,
+        fileHash: fileHash || undefined,
+        blob: null,
+        blobUrl,
+        thumbnail,
+        duration,
+      };
+    }
 
     // 保存视频到数据库
-    const mediaId = await MediaDatabaseService.saveVideo(videoParams);
+    const mediaId = await MediaDatabaseService.saveVideo(videoParams!);
 
     // 保存字幕到数据库
     await MediaDatabaseService.saveSubtitle({
@@ -192,6 +229,9 @@ function ImportVideoModal() {
       createdAt: Date.now(),
       lastSubtitleIndex: -1,
     });
+
+    // 将视频 ID 添加到 sessionStorage
+    SessionStorageService.addVideoId(mediaId);
 
     // 清空状态并跳转到播放页
     resetState();
