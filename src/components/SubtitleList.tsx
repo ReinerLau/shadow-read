@@ -76,7 +76,7 @@ const SubtitleRow = ({
         },
         {
           key: "record",
-          text: "录音",
+          text: "跟读",
           onClick: handleRecord,
         },
       ],
