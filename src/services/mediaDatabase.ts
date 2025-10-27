@@ -1,5 +1,4 @@
 import { openDB, type IDBPDatabase } from "idb";
-import { sha256 } from "hash-wasm";
 import type { MediaFile, MediaDB, Subtitle } from "../types";
 
 /**
@@ -49,12 +48,12 @@ async function getDB(): Promise<IDBPDatabase<MediaDB>> {
 }
 
 /**
- * 分块计算文件的 SHA256 哈希值，使用文件的头部、中部和尾部部分（适用于大文件）
- * @param file - 文件对象
- * @param headSize - 头部大小（默认 256KB）
- * @param middleSize - 中部大小（默认 256KB）
- * @param tailSize - 尾部大小（默认 256KB）
- * @returns Promise<string> 返回文件的哈希值
+ * 计算文件哈希值（使用 Web Crypto API）
+ * @param file - 要计算哈希的文件或 Blob
+ * @param headSize - 文件头部大小（默认 256KB）
+ * @param middleSize - 文件中部大小（默认 256KB）
+ * @param tailSize - 文件尾部大小（默认 256KB）
+ * @returns 返回十六进制的 SHA256 哈希值
  */
 async function computeFileHash(
   file: File | Blob,
@@ -96,9 +95,13 @@ async function computeFileHash(
     pos += chunk.length;
   }
 
-  // 使用 hash-wasm 计算 SHA256
-  const hash = await sha256(combined);
-  return hash;
+  // 使用原生 Web Crypto API 计算 SHA256
+  const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return hashHex;
 }
 
 /**
