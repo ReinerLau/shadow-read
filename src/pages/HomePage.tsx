@@ -1,5 +1,5 @@
 import { Button, Spin, Row, Col } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ImportVideo from "../components/ImportVideo";
 import VideoCard from "../components/VideoCard";
 import MediaDatabaseService from "../services/mediaDatabase";
@@ -15,6 +15,8 @@ function HomePage() {
   const [videos, setVideos] = useState<MediaFile[]>([]);
   /** 加载状态 */
   const [loading, setLoading] = useState(true);
+  /** 存储使用量 */
+  const storageUsageRef = useRef<number | null>(null);
 
   /**
    * 获取所有视频
@@ -44,6 +46,24 @@ function HomePage() {
     }
   };
 
+  /**
+   * 计算当前域名下的存储使用量
+   * @returns {Promise<number | null>} 存储使用信息
+   */
+  async function getStorageUsage() {
+    if (!navigator.storage.estimate) {
+      return null;
+    }
+    const estimate = await navigator.storage.estimate();
+    const usage = estimate.usage; // 已使用字节数
+
+    if (!usage) {
+      return null;
+    }
+
+    return Math.round(usage / 1024 / 1024); // 转换为 MB
+  }
+
   const handleMoreClick = () => {
     Dialog.show({
       title: "更多操作",
@@ -52,7 +72,9 @@ function HomePage() {
       actions: [
         {
           key: "clearCache",
-          text: "清理缓存",
+          text: `清理缓存${
+            storageUsageRef.current ? `(${storageUsageRef.current}MB)` : ""
+          }`,
           onClick: handleClearCache,
           danger: true,
         },
@@ -68,6 +90,9 @@ function HomePage() {
 
   useEffect(() => {
     fetchVideos();
+    getStorageUsage().then((usage) => {
+      storageUsageRef.current = usage;
+    });
   }, []);
 
   return (
