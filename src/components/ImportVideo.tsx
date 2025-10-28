@@ -318,7 +318,7 @@ function ImportVideoModal() {
             >
               {subtitleEntries.length > 0
                 ? `已导入 ${subtitleEntries.length} 条字幕`
-                : "选择字幕文件"}
+                : "导入字幕"}
             </Button>
           </Upload>
         </div>
