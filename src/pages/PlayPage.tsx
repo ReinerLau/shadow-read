@@ -395,16 +395,16 @@ function PlayPage() {
           />
         </div>
 
-        <div className="flex-1 flex min-h-0 w-full min-w-0 max-sm:flex-col">
+        <div className="flex-1 flex min-h-0 w-full max-sm:flex-col">
           {/* 视频播放器 */}
-          <div className="h-full flex-1 bg-black flex items-center justify-center max-sm:w-full max-sm:h-auto max-sm:flex-none">
-            <MediaController className="h-full">
+          <div className="h-full flex-1 bg-black overflow-hidden max-sm:flex-none max-sm:h-auto max-sm:aspect-video">
+            <MediaController className="w-full h-full">
               <video
                 slot="media"
                 ref={videoRef}
                 src={videoUrl}
                 autoPlay
-                className="w-full h-full max-sm:h-auto"
+                className="object-contain w-full h-full"
                 onLoadedMetadata={handleLoadedMetadata}
                 onTimeUpdate={handleTimeUpdate}
                 onSeeking={handleSeeking}
@@ -421,7 +421,7 @@ function PlayPage() {
           </div>
 
           {/* 字幕列表 */}
-          <div className="w-1/3 p-4 max-sm:w-full max-sm:flex-1 max-sm:min-h-0">
+          <div className="w-1/3 p-4 max-sm:w-full max-sm:flex-1 max-sm:overflow-hidden">
             {subtitle && (
               <SubtitleList
                 subtitle={subtitle}
