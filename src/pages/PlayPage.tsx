@@ -9,6 +9,12 @@ import { PlayModeValues, type PlayMode } from "../types";
 import { useMediaInit } from "../hooks/useMediaInit";
 import { useSubtitleIndexPersist } from "../hooks/useSubtitleIndexPersist";
 import MediaDatabaseService from "../services/mediaDatabase";
+import {
+  MediaController,
+  MediaTimeRange,
+  MediaControlBar,
+  MediaTimeDisplay,
+} from "media-chrome/react";
 
 /**
  * 播放页组件
@@ -392,22 +398,26 @@ function PlayPage() {
         <div className="flex-1 flex min-h-0 w-full min-w-0 max-sm:flex-col">
           {/* 视频播放器 */}
           <div className="h-full flex-1 bg-black flex items-center justify-center max-sm:w-full max-sm:h-auto max-sm:flex-none">
-            <video
-              ref={videoRef}
-              src={videoUrl}
-              autoPlay
-              className="w-full h-full max-sm:h-auto"
-              onLoadedMetadata={handleLoadedMetadata}
-              onTimeUpdate={handleTimeUpdate}
-              onSeeking={handleSeeking}
-              onSeeked={handleSeeked}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              playsInline
-              controls
-              controlsList="nofullscreen nodownload noplaybackrate"
-              disablePictureInPicture
-            />
+            <MediaController className="h-full">
+              <video
+                slot="media"
+                ref={videoRef}
+                src={videoUrl}
+                autoPlay
+                className="w-full h-full max-sm:h-auto"
+                onLoadedMetadata={handleLoadedMetadata}
+                onTimeUpdate={handleTimeUpdate}
+                onSeeking={handleSeeking}
+                onSeeked={handleSeeked}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+                playsInline
+              />
+              <MediaControlBar>
+                <MediaTimeRange />
+                <MediaTimeDisplay showDuration className="px-2" />
+              </MediaControlBar>
+            </MediaController>
           </div>
 
           {/* 字幕列表 */}
