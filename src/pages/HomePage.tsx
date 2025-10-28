@@ -61,7 +61,7 @@ function HomePage() {
       return null;
     }
 
-    return Number((usage / 1024 / 1024).toFixed(2)); // 转换为 MB
+    storageUsageRef.current = Number((usage / 1024 / 1024).toFixed(2));
   }
 
   const handleMoreClick = () => {
@@ -86,14 +86,12 @@ function HomePage() {
     sessionStorage.clear();
     await MediaDatabaseService.clearDatabase();
     fetchVideos();
-    storageUsageRef.current = await getStorageUsage();
+    getStorageUsage();
   };
 
   useEffect(() => {
     fetchVideos();
-    getStorageUsage().then((usage) => {
-      storageUsageRef.current = usage;
-    });
+    getStorageUsage();
   }, []);
 
   return (
@@ -125,7 +123,13 @@ function HomePage() {
           <Row gutter={[16, 16]}>
             {videos.map((video) => (
               <Col key={video.id} xs={24} sm={12} md={8} lg={6}>
-                <VideoCard video={video} onVideoDeleted={fetchVideos} />
+                <VideoCard
+                  video={video}
+                  onVideoDeleted={() => {
+                    fetchVideos();
+                    getStorageUsage();
+                  }}
+                />
               </Col>
             ))}
           </Row>
