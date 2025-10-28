@@ -61,7 +61,7 @@ function HomePage() {
       return null;
     }
 
-    return Math.round(usage / 1024 / 1024); // 转换为 MB
+    return Number((usage / 1024 / 1024).toFixed(2)); // 转换为 MB
   }
 
   const handleMoreClick = () => {
@@ -86,6 +86,7 @@ function HomePage() {
     sessionStorage.clear();
     await MediaDatabaseService.clearDatabase();
     fetchVideos();
+    storageUsageRef.current = await getStorageUsage();
   };
 
   useEffect(() => {
