@@ -5,6 +5,7 @@ import VideoCard from "../components/VideoCard";
 import MediaDatabaseService from "../services/mediaDatabase";
 import SessionStorageService from "../services/sessionStorage";
 import type { MediaFile } from "../types";
+import { Dialog } from "antd-mobile";
 
 /**
  * 首页组件
@@ -36,10 +37,33 @@ function HomePage() {
         setVideos(filteredVideos);
       }
     } catch {
+      setVideos([]);
       // 错误处理
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMoreClick = () => {
+    Dialog.show({
+      title: "更多操作",
+      closeOnMaskClick: true,
+      closeOnAction: true,
+      actions: [
+        {
+          key: "clearCache",
+          text: "清理缓存",
+          onClick: handleClearCache,
+          danger: true,
+        },
+      ],
+    });
+  };
+
+  const handleClearCache = async () => {
+    sessionStorage.clear();
+    await MediaDatabaseService.clearDatabase();
+    fetchVideos();
   };
 
   useEffect(() => {
@@ -50,12 +74,12 @@ function HomePage() {
     <div className="h-dvh flex flex-col bg-gray-50">
       {/* header */}
       <div className="p-3 flex justify-between bg-white ">
-        {/* 搜索视频 */}
+        {/* 更多操作 */}
         <Button
           type="text"
           shape="circle"
-          icon={<div className="i-mdi-magnify text-xl" />}
-          disabled={true}
+          icon={<div className="i-mdi-dots-vertical text-xl" />}
+          onClick={handleMoreClick}
         />
         {/* 导入视频 */}
         <ImportVideo />

@@ -109,6 +109,14 @@ async function computeFileHash(
  */
 export class MediaDatabaseService {
   /**
+   * 删除数据库
+   */
+  static async clearDatabase(): Promise<void> {
+    const db = await getDB();
+    await db.clear("videos");
+    await db.clear("subtitles");
+  }
+  /**
    * 获取所有视频文件句柄
    * @returns Promise<MediaFile[]>
    */
