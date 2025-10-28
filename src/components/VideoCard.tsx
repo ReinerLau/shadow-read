@@ -73,7 +73,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoDeleted }) => {
             <img
               src={video.thumbnail}
               alt={video.name}
-              className="max-w-full max-h-full object-contain"
+              className="w-full h-full max-w-full max-h-full object-contain"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-300">

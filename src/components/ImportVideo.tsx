@@ -286,11 +286,11 @@ function ImportVideoModal() {
         <div className="flex flex-col gap-4">
           {/* 视频缩略图 */}
           {thumbnail && (
-            <div className="relative bg-black flex items-center justify-center">
+            <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
               <img
                 src={thumbnail}
                 alt="视频缩略图"
-                className="max-w-full max-h-48 object-contain rounded"
+                className="w-full h-full max-w-full max-h-full object-contain rounded"
               ></img>
               {/* 视频时长 */}
               <div className="absolute bottom-1 right-1 bg-black bg-opacity-30 text-white text-sm px-2 py-1 rounded">
