@@ -67,15 +67,14 @@ function PlayPage() {
           ? editedTime.endTime
           : currentEntry.preciseEndTime;
 
+      if (shouldSeekToStart) {
+        videoRef.current.currentTime = preciseStartTime / 1000;
+      }
+
       // 如果当前时间超过了当前字幕的精确结束时间
       if (currentTimeMs >= preciseEndTime) {
-        if (shouldSeekToStart) {
-          // 播放时：跳回到字幕精确开始位置
-          videoRef.current.currentTime = preciseStartTime / 1000;
-        } else {
-          // 时间更新时：立即暂停
-          videoRef.current.pause();
-        }
+        // 时间更新时：立即暂停
+        videoRef.current.pause();
       }
       // 不走其他播放模式
       return false;
@@ -83,15 +82,12 @@ function PlayPage() {
 
     // 单句暂停模式：检查当前字幕是否已播放完毕
     if (playMode === PlayModeValues.SINGLE_PAUSE) {
+      if (shouldSeekToStart) {
+        videoRef.current.currentTime = currentEntry.preciseStartTime / 1000;
+      }
       // 如果当前时间超过了当前字幕的精确结束时间
       if (currentTimeMs >= currentEntry.preciseEndTime) {
-        if (shouldSeekToStart) {
-          // 播放时：跳回到字幕精确开始位置
-          videoRef.current.currentTime = currentEntry.preciseStartTime / 1000;
-        } else {
-          // 时间更新时：立即暂停
-          videoRef.current.pause();
-        }
+        videoRef.current.pause();
       }
       // 不更新 currentSubtitleIndex，保持在当前字幕
       return false;
