@@ -68,12 +68,12 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoDeleted }) => {
         onClick={handleClick}
       >
         {/* 视频封面 */}
-        <div className="relative w-full aspect-video bg-gray-200 overflow-hidden">
+        <div className="relative w-full bg-black flex items-center justify-center">
           {video.thumbnail ? (
             <img
               src={video.thumbnail}
               alt={video.name}
-              className="w-full h-full object-cover"
+              className="max-w-full max-h-48 object-contain"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-300">
