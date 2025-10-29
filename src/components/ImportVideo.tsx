@@ -243,9 +243,7 @@ function ImportVideoModal() {
             allowClear
           />
           <div className="text-xs text-gray-500">
-            支持以下URL格式：
-            <br />• https://www.youtube.com/watch?v=...
-            <br />• https://youtu.be/...
+            支持URL格式：https://www.youtube.com/watch?v=...
           </div>
         </div>
       </Modal>
