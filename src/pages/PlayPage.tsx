@@ -417,6 +417,7 @@ function PlayPage() {
                   onPlay={() => setIsPlaying(true)}
                   onPause={() => setIsPlaying(false)}
                   playsInline
+                  crossOrigin="anonymous"
                 />
               ) : (
                 <video
