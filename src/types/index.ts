@@ -11,7 +11,7 @@ export interface MediaFile {
   /** 文件句柄（使用 File System Access API 时存储） */
   handle?: FileSystemFileHandle | null;
   /** 文件哈希值（用于识别文件唯一性） */
-  fileHash?: string;
+  fileHash?: string | null;
   /** 文件 Blob（降级方案中存储 File 转换后的 Blob 对象，已废弃） */
   blob?: Blob | null;
   /** Blob URL（降级方案中存储生成的 blob:// URL） */
