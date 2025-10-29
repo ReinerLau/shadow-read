@@ -15,6 +15,8 @@ import {
   MediaControlBar,
   MediaTimeDisplay,
 } from "media-chrome/react";
+import YouTubeVideo from "youtube-video-element/react";
+import type CustomVideoElement from "youtube-video-element";
 
 /**
  * 播放页组件
@@ -23,7 +25,7 @@ import {
 function PlayPage() {
   const { mediaId } = useParams<{ mediaId: string }>();
   const navigate = useNavigate();
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<CustomVideoElement>(null);
 
   const { videoUrl, subtitle, savedSubtitleIndex, error } =
     useMediaInit(mediaId);
@@ -354,6 +356,8 @@ function PlayPage() {
     setRecordingMode(false);
   };
 
+  const isYoutubeVideo = videoUrl?.includes("youtube");
+
   if (error) {
     return (
       <div className="h-dvh flex flex-col bg-gray-50">
@@ -399,20 +403,37 @@ function PlayPage() {
           {/* 视频播放器 */}
           <div className="h-full flex-1 bg-black overflow-hidden max-sm:flex-none max-sm:h-auto max-sm:aspect-video">
             <MediaController className="w-full h-full">
-              <video
-                slot="media"
-                ref={videoRef}
-                src={videoUrl}
-                autoPlay
-                className="object-contain w-full h-full"
-                onLoadedMetadata={handleLoadedMetadata}
-                onTimeUpdate={handleTimeUpdate}
-                onSeeking={handleSeeking}
-                onSeeked={handleSeeked}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-                playsInline
-              />
+              {isYoutubeVideo ? (
+                <YouTubeVideo
+                  slot="media"
+                  ref={videoRef}
+                  src={videoUrl}
+                  autoplay
+                  className="object-contain w-full h-full"
+                  onLoadedMetadata={handleLoadedMetadata}
+                  onTimeUpdate={handleTimeUpdate}
+                  onSeeking={handleSeeking}
+                  onSeeked={handleSeeked}
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  playsInline
+                />
+              ) : (
+                <video
+                  slot="media"
+                  ref={videoRef}
+                  src={videoUrl}
+                  autoPlay
+                  className="object-contain w-full h-full"
+                  onLoadedMetadata={handleLoadedMetadata}
+                  onTimeUpdate={handleTimeUpdate}
+                  onSeeking={handleSeeking}
+                  onSeeked={handleSeeked}
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  playsInline
+                />
+              )}
               <MediaControlBar>
                 <MediaTimeRange />
                 <MediaTimeDisplay showDuration className="px-2" />

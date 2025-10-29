@@ -64,7 +64,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoDeleted }) => {
   return (
     <>
       <div
-        className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer"
+        className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer h-full group"
         onClick={handleClick}
       >
         {/* 视频封面 */}
@@ -94,15 +94,14 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoDeleted }) => {
           )}
         </div>
 
-        <div className="p-3 flex items-center">
+        <div className="p-3 flex items-start h-16">
           {/* 视频名称 */}
-          <div className="flex-1">
-            <h3 className="text-sm font-semibold text-gray-800 truncate">
-              {video.name}
-            </h3>
+          <div className="flex-1 text-sm font-semibold text-gray-800 line-clamp-2">
+            {video.name}
           </div>
           {/* 更多操作 */}
           <Button
+            className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-sm:opacity-100"
             type="text"
             size="small"
             onClick={handleMoreClick}
