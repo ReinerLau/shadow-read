@@ -5,6 +5,18 @@ import MediaDatabaseService from "../services/mediaDatabase";
 import SessionStorageService from "../services/sessionStorage";
 
 /**
+ * YouTube oEmbed API 响应接口
+ */
+interface YoutubeOembedResponse {
+  /** 缩略图 URL */
+  thumbnail_url: string;
+  /** 视频标题 */
+  title: string;
+  /** 其他字段 */
+  [key: string]: unknown;
+}
+
+/**
  * YouTube 视频导入返回值接口
  */
 interface UseYoutubeVideoImportReturn {
@@ -18,14 +30,13 @@ interface UseYoutubeVideoImportReturn {
   extractYoutubeVideoId: (url: string) => string | null;
   /** 获取 YouTube 视频元数据 */
   extractYoutubeMetadata: (
-    videoId: string
-  ) => Promise<{ thumbnail: string; duration: string }>;
+    videoUrl: string
+  ) => Promise<{ thumbnail: string; title: string }>;
   /** 处理 YouTube URL 导入 */
   handleYoutubeUrlImport: () => Promise<
     | {
         videoName: string;
         thumbnail: string;
-        duration: string;
       }
     | false
   >;
@@ -39,6 +50,7 @@ interface UseYoutubeVideoImportReturn {
  * YouTube 视频导入 Hook
  * 负责处理 YouTube 视频的 URL 解析、重复检查和元数据提取
  * 当找到已存在的视频时，直接导航到播放页
+ * 使用 YouTube oEmbed API 获取视频元数据
  * @returns 包含 YouTube 视频导入相关状态和方法的对象
  */
 export function useYoutubeVideoImport(): UseYoutubeVideoImportReturn {
@@ -68,21 +80,40 @@ export function useYoutubeVideoImport(): UseYoutubeVideoImportReturn {
   };
 
   /**
-   * 获取 YouTube 视频元数据（缩略图和时长）
-   * @param videoId - YouTube 视频 ID
-   * @returns 包含缩略图和时长的元数据
+   * 获取 YouTube 视频元数据（缩略图）
+   * 使用 YouTube oEmbed API 获取视频信息
+   * @param videoUrl - YouTube 视频完整 URL
+   * @returns 包含缩略图的元数据
    */
   const extractYoutubeMetadata = async (
-    videoId: string
-  ): Promise<{ thumbnail: string; duration: string }> => {
-    // 使用高质量缩略图 URL
-    const thumbnail = `https://i1.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+    videoUrl: string
+  ): Promise<{ thumbnail: string; title: string }> => {
+    try {
+      // 构造 oEmbed API URL，支持 CORS
+      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(
+        videoUrl
+      )}&format=json`;
 
-    // YouTube 不提供公开的时长获取 API（需要 API key），这里返回默认值
-    // 实际应用中可以使用 youtube-dl、yt-dlp 或 YouTube Data API v3
-    const duration = "00:00:00";
+      const response = await fetch(oembedUrl);
 
-    return { thumbnail, duration };
+      if (!response.ok) {
+        throw new Error(`oEmbed API 请求失败: ${response.status}`);
+      }
+
+      const data = (await response.json()) as YoutubeOembedResponse;
+
+      // 从 oEmbed 响应中提取缩略图
+      const thumbnail = data.thumbnail_url;
+
+      if (!thumbnail) {
+        throw new Error("无法获取视频缩略图");
+      }
+
+      return { thumbnail, title: data.title };
+    } catch {
+      message.error("获取视频信息失败，请检查URL并重试");
+      throw new Error("获取 YouTube 视频元数据失败");
+    }
   };
 
   /**
@@ -92,7 +123,6 @@ export function useYoutubeVideoImport(): UseYoutubeVideoImportReturn {
     | {
         videoName: string;
         thumbnail: string;
-        duration: string;
       }
     | false
   > => {
@@ -122,14 +152,13 @@ export function useYoutubeVideoImport(): UseYoutubeVideoImportReturn {
       }
 
       // 获取 YouTube 视频元数据
-      const metadata = await extractYoutubeMetadata(videoId);
+      const metadata = await extractYoutubeMetadata(youtubeUrl);
 
-      const videoName = `YouTube - ${videoId}`;
+      const videoName = metadata.title;
 
       return {
         videoName,
         thumbnail: metadata.thumbnail,
-        duration: metadata.duration,
       };
     } finally {
       setIsYoutubeLoading(false);

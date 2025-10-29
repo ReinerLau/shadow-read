@@ -123,7 +123,6 @@ function ImportVideoModal() {
         uniqueValue: youtubeVideoImport.id,
         url: `https://www.youtube.com/embed/${youtubeVideoImport.id}`,
         thumbnail: thumbnail,
-        duration: duration,
       };
     }
 
@@ -168,7 +167,6 @@ function ImportVideoModal() {
     if (result) {
       setVideoName(result.videoName);
       setThumbnail(result.thumbnail);
-      setDuration(result.duration);
 
       setIsYoutubeModalOpen(false);
       youtubeVideoImport.setYoutubeUrl("");
@@ -280,10 +278,18 @@ function ImportVideoModal() {
                 alt="视频缩略图"
                 className="w-full h-full max-w-full max-h-full object-contain rounded"
               ></img>
-              {/* 视频时长 */}
-              <div className="absolute bottom-1 right-1 bg-black bg-opacity-30 text-white text-sm px-2 py-1 rounded">
-                {duration}
-              </div>
+              {/* 视频时长 - 仅本地视频显示 */}
+              {duration && (
+                <div className="absolute bottom-1 right-1 bg-black bg-opacity-30 text-white text-sm px-2 py-1 rounded">
+                  {duration}
+                </div>
+              )}
+              {/* YouTube 图标 - 没有时长时显示 */}
+              {!duration && (
+                <div className="absolute bottom-1 right-1 text-white text-2xl">
+                  <div className="i-mdi-youtube" />
+                </div>
+              )}
             </div>
           )}
           {/* 视频名称输入框 */}
