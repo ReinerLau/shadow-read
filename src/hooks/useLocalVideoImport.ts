@@ -69,7 +69,7 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
       setFileHash(computedHash);
 
       // 第二步：检查数据库中是否已存在该 hash 的视频
-      const existingVideo = await MediaDatabaseService.getVideoByFileHash(
+      const existingVideo = await MediaDatabaseService.getVideoByUniqueValue(
         computedHash
       );
 

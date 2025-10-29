@@ -30,7 +30,7 @@ async function getDB(): Promise<IDBPDatabase<MediaDB>> {
           autoIncrement: true,
         });
         // 添加 fileHash 索引以快速查询重复文件
-        videosStore.createIndex("fileHash", "fileHash", { unique: true });
+        videosStore.createIndex("uniqueValue", "uniqueValue", { unique: true });
       }
       // 创建字幕存储对象仓库
       if (!db.objectStoreNames.contains("subtitles")) {
@@ -283,14 +283,14 @@ export class MediaDatabaseService {
 
   /**
    * 根据文件哈希值获取视频
-   * @param fileHash - 文件哈希值
+   * @param uniqueValue - 视频唯一值
    * @returns Promise<MediaFile | undefined>
    */
-  static async getVideoByFileHash(
-    fileHash: string
+  static async getVideoByUniqueValue(
+    uniqueValue: string
   ): Promise<MediaFile | undefined> {
     const db = await getDB();
-    return await db.getFromIndex("videos", "fileHash", fileHash);
+    return await db.getFromIndex("videos", "uniqueValue", uniqueValue);
   }
 
   /**
@@ -303,7 +303,7 @@ export class MediaDatabaseService {
     const db = await getDB();
     const video = await db.get("videos", id);
     if (video) {
-      video.blobUrl = blobUrl;
+      video.url = blobUrl;
       await db.put("videos", video);
     }
   }

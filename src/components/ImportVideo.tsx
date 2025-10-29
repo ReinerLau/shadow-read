@@ -102,7 +102,7 @@ function ImportVideoModal() {
       videoParams = {
         name: videoName.trim(),
         handle: localVideoImport.selectedHandle,
-        fileHash: localVideoImport.fileHash,
+        uniqueValue: localVideoImport.fileHash,
         thumbnail: thumbnail,
         duration: duration,
       };
@@ -111,8 +111,8 @@ function ImportVideoModal() {
       const blobUrl = URL.createObjectURL(localVideoImport.selectedFile);
       videoParams = {
         name: videoName.trim(),
-        fileHash: localVideoImport.fileHash,
-        blobUrl,
+        uniqueValue: localVideoImport.fileHash,
+        url: blobUrl,
         thumbnail: thumbnail,
         duration: duration,
       };
@@ -120,8 +120,8 @@ function ImportVideoModal() {
       // YouTube 视频，存储视频标识信息
       videoParams = {
         name: videoName.trim(),
-        fileHash: youtubeVideoImport.id,
-        blobUrl: `https://www.youtube.com/embed/${youtubeVideoImport.id}`,
+        uniqueValue: youtubeVideoImport.id,
+        url: `https://www.youtube.com/embed/${youtubeVideoImport.id}`,
         thumbnail: thumbnail,
         duration: duration,
       };

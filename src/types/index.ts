@@ -4,18 +4,16 @@ import type { DBSchema } from "idb";
  * 媒体文件数据类型定义
  */
 export interface MediaFile {
-  /** 文件句柄ID */
+  /** 视频ID */
   id: number;
-  /** 文件名称 */
+  /** 视频名称 */
   name: string;
   /** 文件句柄（使用 File System Access API 时存储） */
   handle?: FileSystemFileHandle | null;
-  /** 文件哈希值（用于识别文件唯一性） */
-  fileHash?: string | null;
-  /** 文件 Blob（降级方案中存储 File 转换后的 Blob 对象，已废弃） */
-  blob?: Blob | null;
-  /** Blob URL（降级方案中存储生成的 blob:// URL） */
-  blobUrl?: string | null;
+  /** 视频唯一值 */
+  uniqueValue?: string | null;
+  /** Blob URL 或者 YouTube URL */
+  url?: string | null;
   /** 视频第一帧缩略图 (Data URL) */
   thumbnail?: string;
   /** 视频时长格式化字符串 (HH:MM:SS) */
@@ -31,7 +29,7 @@ export interface MediaDB extends DBSchema {
   videos: {
     key: number;
     value: MediaFile;
-    indexes: { fileHash: string };
+    indexes: { uniqueValue: string };
   };
   subtitles: {
     key: number;

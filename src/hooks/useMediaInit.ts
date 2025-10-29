@@ -66,17 +66,13 @@ export function useMediaInit(mediaId: string | undefined): UseMediaInitReturn {
           const file = await media.handle.getFile();
           url = URL.createObjectURL(file);
           setVideoUrl(url);
-        } else if (media.blobUrl) {
+        } else if (media.url) {
           if (SessionStorageService.isVideoAvailable(media.id)) {
-            setVideoUrl(media.blobUrl);
+            setVideoUrl(media.url);
           } else {
             setError("视频已失效，请重新导入该视频");
             return;
           }
-        } else if (media.blob) {
-          // 兼容旧数据：使用存储的 Blob 对象
-          url = URL.createObjectURL(media.blob);
-          setVideoUrl(url);
         } else {
           // 既没有文件句柄也没有 blobUrl/Blob，说明文件已丢失
           setError("视频文件已丢失，请重新导入该视频");

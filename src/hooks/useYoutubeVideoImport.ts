@@ -108,7 +108,7 @@ export function useYoutubeVideoImport(): UseYoutubeVideoImportReturn {
 
     try {
       // 使用 videoId 作为唯一标识符检查数据库中是否已存在该视频
-      const existingVideo = await MediaDatabaseService.getVideoByFileHash(
+      const existingVideo = await MediaDatabaseService.getVideoByUniqueValue(
         videoId
       );
 
