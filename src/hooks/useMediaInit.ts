@@ -67,7 +67,10 @@ export function useMediaInit(mediaId: string | undefined): UseMediaInitReturn {
           url = URL.createObjectURL(file);
           setVideoUrl(url);
         } else if (media.url) {
-          if (SessionStorageService.isVideoAvailable(media.id)) {
+          if (
+            SessionStorageService.isVideoAvailable(media.id) ||
+            media.url.includes("youtube")
+          ) {
             setVideoUrl(media.url);
           } else {
             setError("视频已失效，请重新导入该视频");
