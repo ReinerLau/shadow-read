@@ -14,9 +14,9 @@ export default defineConfig({
         enabled: false,
       },
       manifest: {
-        id: "shadow-read",
-        name: "Shadow Read",
-        short_name: "Shadow Read",
+        id: "shadowing",
+        name: "影读",
+        short_name: "影读",
         theme_color: "#ffffff",
         icons: [
           {
