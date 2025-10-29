@@ -1,4 +1,4 @@
-import { Button, Modal, Input, Upload, message } from "antd";
+import { Button, Modal, Input, Upload, message, Dropdown } from "antd";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import MediaDatabaseService from "../services/mediaDatabase";
@@ -6,6 +6,7 @@ import SessionStorageService from "../services/sessionStorage";
 import SubtitleParserService from "../services/subtitleParser";
 import { extractVideoMetadata } from "../services/videoData";
 import type { SubtitleEntry } from "../types";
+import type { MenuProps } from "antd";
 
 /**
  * 视频导入模态框组件
@@ -24,6 +25,9 @@ function ImportVideoModal() {
   const [isLoading, setIsLoading] = useState(false);
   const [subtitleEntries, setSubtitleEntries] = useState<SubtitleEntry[]>([]);
   const [isParsingSubtitle, setIsParsingSubtitle] = useState(false);
+  const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [isYoutubeLoading, setIsYoutubeLoading] = useState(false);
 
   /**
    * 处理文件选择后的逻辑 - 计算 hash 检查重复
@@ -75,6 +79,112 @@ function ImportVideoModal() {
     setThumbnail(metadata.thumbnail);
     setDuration(metadata.duration);
     setIsLoading(false);
+  };
+
+  /**
+   * 从 YouTube URL 中提取视频 ID
+   * @param url - YouTube 视频URL
+   * @returns 视频 ID 或 null
+   */
+  const extractYoutubeVideoId = (url: string): string | null => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        return match[1];
+      }
+    }
+    return null;
+  };
+
+  /**
+   * 为 YouTube 视频生成唯一的哈希值
+   * @param videoId - YouTube 视频 ID
+   * @returns 哈希值
+   */
+  const generateYoutubeHash = async (videoId: string): Promise<string> => {
+    const data = new TextEncoder().encode(`youtube:${videoId}`);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  };
+
+  /**
+   * 获取 YouTube 视频元数据（缩略图和时长）
+   * @param videoId - YouTube 视频 ID
+   * @returns 包含缩略图和时长的元数据
+   */
+  const extractYoutubeMetadata = async (
+    videoId: string
+  ): Promise<{ thumbnail: string; duration: string }> => {
+    // 使用高质量缩略图 URL
+    const thumbnail = `https://i1.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+
+    // YouTube 不提供公开的时长获取 API（需要 API key），这里返回默认值
+    // 实际应用中可以使用 youtube-dl、yt-dlp 或 YouTube Data API v3
+    const duration = "00:00:00";
+
+    return { thumbnail, duration };
+  };
+
+  /**
+   * 处理 YouTube URL 导入
+   */
+  const handleYoutubeUrlImport = async () => {
+    const videoId = extractYoutubeVideoId(youtubeUrl);
+
+    if (!videoId) {
+      message.error("YouTube 视频URL格式不正确，请重试");
+      return;
+    }
+
+    setIsYoutubeLoading(true);
+
+    try {
+      // 生成唯一的哈希值
+      const youtubeHash = await generateYoutubeHash(videoId);
+
+      // 检查数据库中是否已存在该视频
+      const existingVideo = await MediaDatabaseService.getVideoByFileHash(
+        youtubeHash
+      );
+
+      if (existingVideo) {
+        message.info("视频已存在，直接播放");
+        SessionStorageService.addVideoId(existingVideo.id);
+        navigate(`/play/${existingVideo.id}`);
+        setIsYoutubeLoading(false);
+        setIsYoutubeModalOpen(false);
+        setYoutubeUrl("");
+        return;
+      }
+
+      // 获取 YouTube 视频元数据
+      const metadata = await extractYoutubeMetadata(videoId);
+
+      // 设置为模态框数据
+      setSelectedFile(null);
+      setSelectedHandle(null);
+      setFileHash(youtubeHash);
+      setVideoName(`YouTube - ${videoId}`);
+      setThumbnail(metadata.thumbnail);
+      setDuration(metadata.duration);
+
+      // 关闭 YouTube URL 输入框
+      setIsYoutubeModalOpen(false);
+      setYoutubeUrl("");
+
+      // 打开视频编辑模态框
+      setIsModalOpen(true);
+    } catch {
+      message.error("YouTube 视频导入失败，请检查URL");
+    } finally {
+      setIsYoutubeLoading(false);
+    }
   };
 
   /**
@@ -179,7 +289,10 @@ function ImportVideoModal() {
    * 处理播放视频并保存到数据库
    */
   const handlePlayVideo = async () => {
-    if (!videoName.trim() || (!selectedHandle && !selectedFile)) {
+    if (
+      !videoName.trim() ||
+      (!selectedHandle && !selectedFile && fileHash === null)
+    ) {
       return;
     }
 
@@ -214,6 +327,17 @@ function ImportVideoModal() {
         fileHash: fileHash || undefined,
         blob: null,
         blobUrl,
+        thumbnail,
+        duration,
+      };
+    } else {
+      // YouTube 视频，存储视频标识信息
+      videoParams = {
+        name: videoName.trim(),
+        handle: null,
+        fileHash: fileHash || undefined,
+        blob: null,
+        blobUrl: `https://www.youtube.com/embed/${fileHash?.substring(0, 11)}`,
         thumbnail,
         duration,
       };
@@ -253,16 +377,81 @@ function ImportVideoModal() {
     setSubtitleEntries([]);
   };
 
+  /**
+   * 处理 YouTube 模态框取消
+   */
+  const handleYoutubeModalCancel = () => {
+    setIsYoutubeModalOpen(false);
+    setYoutubeUrl("");
+  };
+
+  /**
+   * 下拉菜单项配置
+   */
+  const menuItems: MenuProps["items"] = [
+    {
+      key: "local",
+      label: "本地视频",
+      icon: <div className="i-mdi-folder-open text-lg" />,
+      onClick: handleImportVideo,
+    },
+    {
+      key: "youtube",
+      label: "Youtube 视频",
+      icon: <div className="i-mdi-youtube text-lg" />,
+      onClick: () => setIsYoutubeModalOpen(true),
+    },
+  ];
+
   return (
     <>
-      {/* 导入视频按钮 */}
-      <Button
-        type="default"
-        shape="circle"
-        icon={<div className="i-mdi-plus text-xl" />}
-        onClick={handleImportVideo}
-        loading={isLoading}
-      />
+      {/* 导入视频下拉菜单 */}
+      <Dropdown
+        menu={{ items: menuItems }}
+        trigger={["click"]}
+        placement="bottomRight"
+      >
+        <Button
+          type="default"
+          shape="circle"
+          icon={<div className="i-mdi-plus text-xl" />}
+          loading={isLoading}
+        />
+      </Dropdown>
+
+      {/* YouTube 视频URL输入弹窗 */}
+      <Modal
+        title="导入 YouTube 视频"
+        open={isYoutubeModalOpen}
+        onCancel={handleYoutubeModalCancel}
+        footer={
+          <div className="flex justify-center gap-2">
+            <Button onClick={handleYoutubeModalCancel}>取消</Button>
+            <Button
+              type="primary"
+              onClick={handleYoutubeUrlImport}
+              loading={isYoutubeLoading}
+              disabled={!youtubeUrl.trim()}
+            >
+              确定
+            </Button>
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-4 py-4">
+          <Input
+            placeholder="请输入 YouTube 视频URL"
+            value={youtubeUrl}
+            onChange={(e) => setYoutubeUrl(e.target.value)}
+            allowClear
+          />
+          <div className="text-xs text-gray-500">
+            支持以下URL格式：
+            <br />• https://www.youtube.com/watch?v=...
+            <br />• https://youtu.be/...
+          </div>
+        </div>
+      </Modal>
 
       {/* 视频名称输入模态框 */}
       <Modal
