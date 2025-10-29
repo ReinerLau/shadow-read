@@ -44,6 +44,9 @@ importers:
       vconsole:
         specifier: ^3.15.1
         version: 3.15.1
+      youtube-video-element:
+        specifier: ^1.6.2
+        version: 1.6.2
     devDependencies:
       '@eslint/js':
         specifier: ^9.36.0
@@ -3418,6 +3421,9 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+
+  youtube-video-element@1.6.2:
+    resolution: {integrity: sha512-YHDIOAqgRpfl1Ois9HcB8UFtWOxK8KJrV5TXpImj4BKYP1rWT04f/fMM9tQ9SYZlBKukT7NR+9wcI3UpB5BMDQ==}
 
 snapshots:
 
@@ -7252,3 +7258,5 @@ snapshots:
   yallist@3.1.1: {}
 
   yocto-queue@0.1.0: {}
+
+  youtube-video-element@1.6.2: {}
