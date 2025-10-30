@@ -23,14 +23,10 @@ function ImportVideoModal() {
   const [videoMetadata, setVideoMetadata] = useState<{
     thumbnail: string;
     duration: string;
-    videoCodec: string;
-    audioCodec: string;
     container: string;
   }>({
     thumbnail: "",
     duration: "",
-    videoCodec: "",
-    audioCodec: "",
     container: "",
   });
 
@@ -51,8 +47,6 @@ function ImportVideoModal() {
       setVideoMetadata({
         thumbnail: result.thumbnail,
         duration: result.duration,
-        videoCodec: result.videoCodec,
-        audioCodec: result.audioCodec,
         container: result.container,
       });
       setIsModalOpen(true);
@@ -95,8 +89,6 @@ function ImportVideoModal() {
     setVideoMetadata({
       thumbnail: "",
       duration: "",
-      videoCodec: "",
-      audioCodec: "",
       container: "",
     });
     localVideoImport.resetLocalVideoState();
@@ -126,8 +118,6 @@ function ImportVideoModal() {
         uniqueValue: localVideoImport.fileHash,
         thumbnail: videoMetadata.thumbnail,
         duration: videoMetadata.duration,
-        videoCodec: videoMetadata.videoCodec,
-        audioCodec: videoMetadata.audioCodec,
         container: videoMetadata.container,
       };
     } else if (localVideoImport.selectedFile) {
@@ -139,8 +129,6 @@ function ImportVideoModal() {
         url: blobUrl,
         thumbnail: videoMetadata.thumbnail,
         duration: videoMetadata.duration,
-        videoCodec: videoMetadata.videoCodec,
-        audioCodec: videoMetadata.audioCodec,
         container: videoMetadata.container,
       };
     } else {
@@ -183,8 +171,6 @@ function ImportVideoModal() {
     setVideoMetadata({
       thumbnail: "",
       duration: "",
-      videoCodec: "",
-      audioCodec: "",
       container: "",
     });
     localVideoImport.resetLocalVideoState();
@@ -201,8 +187,6 @@ function ImportVideoModal() {
       setVideoMetadata({
         thumbnail: result.thumbnail,
         duration: "",
-        videoCodec: "",
-        audioCodec: "",
         container: "",
       });
 
@@ -329,26 +313,12 @@ function ImportVideoModal() {
             </div>
           )}
           {/* 视频编码信息展示 */}
-          {(videoMetadata.videoCodec ||
-            videoMetadata.audioCodec ||
-            videoMetadata.container) && (
+          {videoMetadata.container && (
             <div className="bg-gray-50 p-3 rounded border border-gray-200">
               <div className="text-sm text-gray-600 space-y-1">
-                {videoMetadata.videoCodec && (
-                  <div>
-                    <span className="font-medium">视频编码：</span>
-                    <span>{videoMetadata.videoCodec}</span>
-                  </div>
-                )}
-                {videoMetadata.audioCodec && (
-                  <div>
-                    <span className="font-medium">音频编码：</span>
-                    <span>{videoMetadata.audioCodec}</span>
-                  </div>
-                )}
                 {videoMetadata.container && (
                   <div>
-                    <span className="font-medium">容器格式：</span>
+                    <span className="font-medium">视频格式：</span>
                     <span>{videoMetadata.container}</span>
                   </div>
                 )}
