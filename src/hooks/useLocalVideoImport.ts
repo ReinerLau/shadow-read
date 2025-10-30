@@ -82,6 +82,7 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
         if ("showOpenFilePicker" in window) {
           // 支持 File System Access API，直接跳转播放
           navigate(`/play/${existingVideo.id}`);
+          setIsLoading(false);
           return false;
         } else {
           // 不支持 File System Access API，需要更新 blobUrl
@@ -91,6 +92,7 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
             blobUrl
           );
           navigate(`/play/${existingVideo.id}`);
+          setIsLoading(false);
           return false;
         }
       }
