@@ -43,7 +43,7 @@ function ImportVideoModal() {
     const result = await localVideoImport.handleImportVideo();
 
     if (!result) {
-      message.error("暂不支持该视频文件格式");
+      message.error("视频导入失败，请检查视频格式");
       return;
     }
 
