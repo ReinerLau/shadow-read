@@ -20,8 +20,19 @@ function ImportVideoModal() {
   const [subtitleEntries, setSubtitleEntries] = useState<SubtitleEntry[]>([]);
   const [isParsingSubtitle, setIsParsingSubtitle] = useState(false);
   const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
-  const [thumbnail, setThumbnail] = useState<string | undefined>();
-  const [duration, setDuration] = useState<string | undefined>();
+  const [videoMetadata, setVideoMetadata] = useState<{
+    thumbnail: string;
+    duration: string;
+    videoCodec: string;
+    audioCodec: string;
+    container: string;
+  }>({
+    thumbnail: "",
+    duration: "",
+    videoCodec: "",
+    audioCodec: "",
+    container: "",
+  });
 
   // 本地视频导入 Hook
   const localVideoImport = useLocalVideoImport();
@@ -37,8 +48,13 @@ function ImportVideoModal() {
 
     if (result) {
       setVideoName(result.videoName);
-      setThumbnail(result.thumbnail);
-      setDuration(result.duration);
+      setVideoMetadata({
+        thumbnail: result.thumbnail,
+        duration: result.duration,
+        videoCodec: result.videoCodec,
+        audioCodec: result.audioCodec,
+        container: result.container,
+      });
       setIsModalOpen(true);
     }
   };
@@ -76,8 +92,13 @@ function ImportVideoModal() {
     setIsModalOpen(false);
     setVideoName("");
     setSubtitleEntries([]);
-    setThumbnail(undefined);
-    setDuration(undefined);
+    setVideoMetadata({
+      thumbnail: "",
+      duration: "",
+      videoCodec: "",
+      audioCodec: "",
+      container: "",
+    });
     localVideoImport.resetLocalVideoState();
     youtubeVideoImport.resetYoutubeState();
   };
@@ -103,8 +124,11 @@ function ImportVideoModal() {
         name: videoName.trim(),
         handle: localVideoImport.selectedHandle,
         uniqueValue: localVideoImport.fileHash,
-        thumbnail: thumbnail,
-        duration: duration,
+        thumbnail: videoMetadata.thumbnail,
+        duration: videoMetadata.duration,
+        videoCodec: videoMetadata.videoCodec,
+        audioCodec: videoMetadata.audioCodec,
+        container: videoMetadata.container,
       };
     } else if (localVideoImport.selectedFile) {
       // 不支持 File System Access API，生成并存储 blobUrl
@@ -113,8 +137,11 @@ function ImportVideoModal() {
         name: videoName.trim(),
         uniqueValue: localVideoImport.fileHash,
         url: blobUrl,
-        thumbnail: thumbnail,
-        duration: duration,
+        thumbnail: videoMetadata.thumbnail,
+        duration: videoMetadata.duration,
+        videoCodec: videoMetadata.videoCodec,
+        audioCodec: videoMetadata.audioCodec,
+        container: videoMetadata.container,
       };
     } else {
       // YouTube 视频，存储视频标识信息
@@ -122,7 +149,7 @@ function ImportVideoModal() {
         name: videoName.trim(),
         uniqueValue: youtubeVideoImport.id,
         url: `https://www.youtube.com/embed/${youtubeVideoImport.id}`,
-        thumbnail: thumbnail,
+        thumbnail: videoMetadata.thumbnail,
       };
     }
 
@@ -153,8 +180,13 @@ function ImportVideoModal() {
     setIsModalOpen(false);
     setVideoName("");
     setSubtitleEntries([]);
-    setThumbnail(undefined);
-    setDuration(undefined);
+    setVideoMetadata({
+      thumbnail: "",
+      duration: "",
+      videoCodec: "",
+      audioCodec: "",
+      container: "",
+    });
     localVideoImport.resetLocalVideoState();
   };
 
@@ -166,7 +198,13 @@ function ImportVideoModal() {
 
     if (result) {
       setVideoName(result.videoName);
-      setThumbnail(result.thumbnail);
+      setVideoMetadata({
+        thumbnail: result.thumbnail,
+        duration: "",
+        videoCodec: "",
+        audioCodec: "",
+        container: "",
+      });
 
       setIsYoutubeModalOpen(false);
       youtubeVideoImport.setYoutubeUrl("");
@@ -269,25 +307,52 @@ function ImportVideoModal() {
       >
         <div className="flex flex-col gap-4">
           {/* 视频缩略图 */}
-          {thumbnail && (
+          {videoMetadata.thumbnail && (
             <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
               <img
-                src={thumbnail}
+                src={videoMetadata.thumbnail}
                 alt="视频缩略图"
                 className="w-full h-full max-w-full max-h-full object-contain rounded"
               ></img>
               {/* 视频时长 - 仅本地视频显示 */}
-              {duration && (
+              {videoMetadata.duration && (
                 <div className="absolute bottom-1 right-1 bg-black bg-opacity-30 text-white text-sm px-2 py-1 rounded">
-                  {duration}
+                  {videoMetadata.duration}
                 </div>
               )}
               {/* YouTube 图标 - 没有时长时显示 */}
-              {!duration && (
+              {!videoMetadata.duration && (
                 <div className="absolute bottom-1 right-1 text-white text-2xl">
                   <div className="i-mdi-youtube" />
                 </div>
               )}
+            </div>
+          )}
+          {/* 视频编码信息展示 */}
+          {(videoMetadata.videoCodec ||
+            videoMetadata.audioCodec ||
+            videoMetadata.container) && (
+            <div className="bg-gray-50 p-3 rounded border border-gray-200">
+              <div className="text-sm text-gray-600 space-y-1">
+                {videoMetadata.videoCodec && (
+                  <div>
+                    <span className="font-medium">视频编码：</span>
+                    <span>{videoMetadata.videoCodec}</span>
+                  </div>
+                )}
+                {videoMetadata.audioCodec && (
+                  <div>
+                    <span className="font-medium">音频编码：</span>
+                    <span>{videoMetadata.audioCodec}</span>
+                  </div>
+                )}
+                {videoMetadata.container && (
+                  <div>
+                    <span className="font-medium">容器格式：</span>
+                    <span>{videoMetadata.container}</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
           {/* 视频名称输入框 */}

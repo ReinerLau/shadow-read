@@ -18,6 +18,12 @@ export interface MediaFile {
   thumbnail?: string;
   /** 视频时长格式化字符串 (HH:MM:SS) */
   duration?: string;
+  /** 视频编码格式 (e.g., "h264", "vp9", "av1") */
+  videoCodec?: string;
+  /** 音频编码格式 (e.g., "aac", "opus", "mp3") */
+  audioCodec?: string;
+  /** 容器格式 (e.g., "mp4", "webm", "mkv") */
+  container?: string;
   /** 最后播放时间（时间戳毫秒） */
   lastPlayedTime?: number;
 }

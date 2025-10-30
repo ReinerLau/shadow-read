@@ -3,7 +3,10 @@ import { useNavigate } from "react-router";
 import { message } from "antd";
 import MediaDatabaseService from "../services/mediaDatabase";
 import SessionStorageService from "../services/sessionStorage";
-import { extractVideoMetadata } from "../services/videoData";
+import {
+  extractVideoMetadata,
+  extractEncodingFormat,
+} from "../services/videoData";
 
 /**
  * 本地视频导入返回值接口
@@ -23,6 +26,9 @@ interface UseLocalVideoImportReturn {
         videoName: string;
         thumbnail: string;
         duration: string;
+        videoCodec: string;
+        audioCodec: string;
+        container: string;
       }
     | false
   >;
@@ -56,6 +62,9 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
         videoName: string;
         thumbnail: string;
         duration: string;
+        videoCodec: string;
+        audioCodec: string;
+        container: string;
       }
     | false
   > => {
@@ -99,13 +108,21 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
       setSelectedFile(file);
       const videoName = file.name.replace(/\.[^/.]+$/, ""); // 移除文件扩展名
 
+      const container = file.type.split("/")[1];
+
       // 第四步：获取视频元数据（缩略图和时长）
       const metadata = await extractVideoMetadata(file);
+
+      // 第五步：提取视频编码格式信息
+      const encodingFormat = await extractEncodingFormat(file);
 
       return {
         videoName,
         thumbnail: metadata.thumbnail,
         duration: metadata.duration,
+        videoCodec: encodingFormat ? encodingFormat.videoCodec : "",
+        audioCodec: encodingFormat ? encodingFormat.audioCodec : "",
+        container: container,
       };
     } finally {
       setIsLoading(false);
@@ -120,6 +137,9 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
         videoName: string;
         thumbnail: string;
         duration: string;
+        videoCodec: string;
+        audioCodec: string;
+        container: string;
       }
     | false
   > => {
@@ -147,6 +167,9 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
           videoName: result.videoName,
           thumbnail: result.thumbnail,
           duration: result.duration,
+          videoCodec: result.videoCodec,
+          audioCodec: result.audioCodec,
+          container: result.container,
         };
       } else {
         return false;
@@ -164,6 +187,9 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
         videoName: string;
         thumbnail: string;
         duration: string;
+        videoCodec: string;
+        audioCodec: string;
+        container: string;
       }
     | false
   > => {
@@ -185,6 +211,9 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
               videoName: result.videoName,
               thumbnail: result.thumbnail,
               duration: result.duration,
+              videoCodec: result.videoCodec,
+              audioCodec: result.audioCodec,
+              container: result.container,
             });
           } else {
             resolve(false);
@@ -212,6 +241,9 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
         videoName: string;
         thumbnail: string;
         duration: string;
+        videoCodec: string;
+        audioCodec: string;
+        container: string;
       }
     | false
   > => {

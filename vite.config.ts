@@ -30,4 +30,7 @@ export default defineConfig({
     }),
   ],
   base: "./",
+  optimizeDeps: {
+    exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"],
+  },
 });
