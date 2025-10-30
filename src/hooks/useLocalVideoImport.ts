@@ -1,64 +1,46 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import { message } from "antd";
 import MediaDatabaseService from "../services/mediaDatabase";
 import SessionStorageService from "../services/sessionStorage";
-import { extractVideoMetadata } from "../services/videoData";
 
 /**
  * 本地视频导入返回值接口
  */
 interface UseLocalVideoImportReturn {
-  /** 选中的文件 */
-  selectedFile: File | null;
-  /** 选中的文件句柄 */
-  selectedHandle: FileSystemFileHandle | null;
+  /** 选中的文件 ref */
+  selectedFileRef: React.RefObject<File | null>;
+  /** 选中的文件句柄 ref */
+  selectedHandleRef: React.RefObject<FileSystemFileHandle | null>;
   /** 文件哈希值 */
   fileHash: string | null;
   /** 是否正在加载 */
   isLoading: boolean;
   /** 处理本地视频导入 */
-  handleImportVideo: () => Promise<
-    | {
-        videoName: string;
-        thumbnail: string;
-        duration: string;
-      }
-    | false
-  >;
+  handleImportVideo: () => Promise<boolean>;
   /** 重置本地视频导入状态 */
   resetLocalVideoState: () => void;
 }
 
 /**
  * 本地视频导入 Hook
- * 负责处理本地视频文件的选择、哈希计算、重复检查和元数据提取
- * 当找到已存在的视频时，直接导航到播放页
+ * 负责处理本地视频文件的选择、哈希计算和重复检查
+ * 元数据（缩略图和时长）的提取已迁移至 PlayPage，在视频加载时提取
  * @returns 包含本地视频导入相关状态和方法的对象
  */
 export function useLocalVideoImport(): UseLocalVideoImportReturn {
   const navigate = useNavigate();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedHandle, setSelectedHandle] =
-    useState<FileSystemFileHandle | null>(null);
+  const selectedFileRef = useRef<File | null>(null);
+  const selectedHandleRef = useRef<FileSystemFileHandle | null>(null);
   const [fileHash, setFileHash] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   /**
    * 处理文件选择后的逻辑 - 计算 hash 检查重复
    * @param file - 选中的文件
-   * @returns 是否应该继续处理（false 表示视频已存在），以及提取的视频名称、缩略图和时长
+   * @returns 是否应该继续处理（false 表示视频已存在）
    */
-  const handleFileSelected = async (
-    file: File
-  ): Promise<
-    | {
-        videoName: string;
-        thumbnail: string;
-        duration: string;
-      }
-    | false
-  > => {
+  const handleFileSelected = async (file: File): Promise<boolean> => {
     setIsLoading(true);
 
     try {
@@ -97,18 +79,9 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
         }
       }
 
-      // 第三步：视频不存在，继续正常流程 - 设置选中的文件和视频名称
-      setSelectedFile(file);
-      const videoName = file.name.replace(/\.[^/.]+$/, ""); // 移除文件扩展名
-
-      // 第四步：获取视频元数据（缩略图和时长）
-      const metadata = await extractVideoMetadata(file);
-
-      return {
-        videoName,
-        thumbnail: metadata.thumbnail,
-        duration: metadata.duration,
-      };
+      // 第三步：视频不存在，继续正常流程 - 设置选中的文件
+      selectedFileRef.current = file;
+      return true;
     } finally {
       setIsLoading(false);
     }
@@ -117,14 +90,7 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
   /**
    * 处理视频文件导入 - 使用 File System Access API
    */
-  const handleImportVideoWithFileSystemAPI = async (): Promise<
-    | {
-        videoName: string;
-        thumbnail: string;
-        duration: string;
-      }
-    | false
-  > => {
+  const handleImportVideoWithFileSystemAPI = async (): Promise<boolean> => {
     try {
       // 使用 File System Access API 打开文件选择器, 选择文件后得到文件句柄
       const [handle] = await window.showOpenFilePicker({
@@ -140,19 +106,9 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
       });
 
       // 设置选中的文件句柄
-      setSelectedHandle(handle);
+      selectedHandleRef.current = handle;
       const file = await handle.getFile();
-      const result = await handleFileSelected(file);
-
-      if (result) {
-        return {
-          videoName: result.videoName,
-          thumbnail: result.thumbnail,
-          duration: result.duration,
-        };
-      } else {
-        return false;
-      }
+      return await handleFileSelected(file);
     } catch {
       return false;
     }
@@ -161,14 +117,7 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
   /**
    * 处理视频文件导入 - 使用 input 元素作为降级方案
    */
-  const handleImportVideoWithInput = async (): Promise<
-    | {
-        videoName: string;
-        thumbnail: string;
-        duration: string;
-      }
-    | false
-  > => {
+  const handleImportVideoWithInput = async (): Promise<boolean> => {
     return new Promise((resolve) => {
       // 动态创建 input 元素
       const input = document.createElement("input");
@@ -181,16 +130,7 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
         const file = target.files?.[0];
         if (file) {
           const result = await handleFileSelected(file);
-
-          if (result) {
-            resolve({
-              videoName: result.videoName,
-              thumbnail: result.thumbnail,
-              duration: result.duration,
-            });
-          } else {
-            resolve(false);
-          }
+          resolve(result);
         } else {
           resolve(false);
         }
@@ -209,14 +149,7 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
   /**
    * 处理视频文件导入
    */
-  const handleImportVideo = async (): Promise<
-    | {
-        videoName: string;
-        thumbnail: string;
-        duration: string;
-      }
-    | false
-  > => {
+  const handleImportVideo = async (): Promise<boolean> => {
     setIsLoading(true);
 
     try {
@@ -236,14 +169,14 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
    * 重置本地视频导入状态
    */
   const resetLocalVideoState = () => {
-    setSelectedHandle(null);
-    setSelectedFile(null);
+    selectedHandleRef.current = null;
+    selectedFileRef.current = null;
     setFileHash(null);
   };
 
   return {
-    selectedFile,
-    selectedHandle,
+    selectedFileRef,
+    selectedHandleRef,
     fileHash,
     isLoading,
     handleImportVideo,

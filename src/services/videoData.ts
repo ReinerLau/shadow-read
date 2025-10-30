@@ -47,34 +47,21 @@ function extractVideoThumbnail(video: HTMLVideoElement): string {
 }
 
 /**
- * 获取视频元数据（缩略图和时长）
- * 在单次视频加载过程中的 onloadeddata 事件中同时提取缩略图和时长，避免重复加载视频
- * @param file - 视频文件对象
- * @returns Promise<VideoMetadata> 返回包含缩略图 Data URL 和时长的元数据对象
+ * 从视频元素提取元数据
+ * 用于在视频加载后从视频元素中直接提取缩略图和时长
+ * @param video - 视频元素 (HTMLVideoElement)
+ * @returns VideoMetadata 返回包含缩略图 Data URL 和时长的元数据对象
  */
-export async function extractVideoMetadata(file: File): Promise<VideoMetadata> {
-  return new Promise((resolve) => {
-    const video = document.createElement("video");
-    const url = URL.createObjectURL(file);
+export function extractMetadataFromVideoElement(
+  video: HTMLVideoElement
+): VideoMetadata {
+  const duration = extractVideoDuration(video);
+  const thumbnail = extractVideoThumbnail(video);
 
-    // 当视频第一帧数据加载完成时
-    video.onloadeddata = () => {
-      // 在此事件中同时执行提取时长和提取缩略图的逻辑
-      const duration = extractVideoDuration(video);
-      const thumbnail = extractVideoThumbnail(video);
-
-      // 释放临时URL
-      URL.revokeObjectURL(url);
-
-      resolve({
-        thumbnail,
-        duration,
-      });
-    };
-    // 预加载视频数据，触发 onloadeddata 事件
-    video.preload = "auto";
-    video.src = url;
-  });
+  return {
+    thumbnail,
+    duration,
+  };
 }
 
 /**

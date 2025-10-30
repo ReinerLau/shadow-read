@@ -8,6 +8,7 @@ import { MoreModal } from "../components/MoreModal";
 import { PlayModeValues, type PlayMode } from "../types";
 import { useMediaInit } from "../hooks/useMediaInit";
 import { useSubtitleIndexPersist } from "../hooks/useSubtitleIndexPersist";
+import { extractMetadataFromVideoElement } from "../services/videoData";
 import MediaDatabaseService from "../services/mediaDatabase";
 import {
   MediaController,
@@ -27,7 +28,7 @@ function PlayPage() {
   const navigate = useNavigate();
   const videoRef = useRef<CustomVideoElement>(null);
 
-  const { videoUrl, subtitle, savedSubtitleIndex, error } =
+  const { videoUrl, subtitle, savedSubtitleIndex, error, thumbnail } =
     useMediaInit(mediaId);
   const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState<number>(-1);
   const [isMoreModalOpen, setIsMoreModalOpen] = useState<boolean>(false);
@@ -115,10 +116,31 @@ function PlayPage() {
   };
 
   /**
+   * 视频数据加载后提取元数据
+   * 在 loadeddata 事件中提取缩略图和时长，然后保存到数据库
+   */
+  const handleLoadedData = async () => {
+    if (!videoRef.current) return;
+    if (thumbnail) return;
+
+    // 提取视频元数据
+    const metadata = extractMetadataFromVideoElement(videoRef.current);
+
+    // 更新数据库中的视频元数据
+    await MediaDatabaseService.updateVideoMetadata(
+      Number(mediaId),
+      metadata.thumbnail,
+      metadata.duration
+    );
+  };
+
+  /**
    * 视频加载元数据后跳转到保存的字幕索引
    */
   const handleLoadedMetadata = () => {
-    if (!subtitle || savedSubtitleIndex < 0) return;
+    if (!videoRef.current || !subtitle || savedSubtitleIndex < 0) return;
+
+    // 跳转到保存的字幕索引
     const savedEntry = subtitle.entries[savedSubtitleIndex];
     videoRef.current!.currentTime = savedEntry.startTime / 1000;
     setCurrentSubtitleIndex(savedSubtitleIndex);
@@ -433,6 +455,7 @@ function PlayPage() {
                   onPlay={() => setIsPlaying(true)}
                   onPause={() => setIsPlaying(false)}
                   playsInline
+                  onLoadedData={handleLoadedData}
                 />
               )}
               <MediaControlBar>

@@ -21,7 +21,6 @@ function ImportVideoModal() {
   const [isParsingSubtitle, setIsParsingSubtitle] = useState(false);
   const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
   const [thumbnail, setThumbnail] = useState<string | undefined>();
-  const [duration, setDuration] = useState<string | undefined>();
 
   // 本地视频导入 Hook
   const localVideoImport = useLocalVideoImport();
@@ -35,10 +34,15 @@ function ImportVideoModal() {
   const handleImportLocalVideo = async () => {
     const result = await localVideoImport.handleImportVideo();
 
+    // result 为 true 表示成功导入新视频，false/null 表示视频已存在或用户取消
     if (result) {
-      setVideoName(result.videoName);
-      setThumbnail(result.thumbnail);
-      setDuration(result.duration);
+      // 从文件名中移除扩展名作为默认视频名称
+      const videoNameDefault = localVideoImport.selectedFileRef.current
+        ? localVideoImport.selectedFileRef.current.name.replace(/\.[^/.]+$/, "")
+        : "";
+      setVideoName(videoNameDefault);
+      // 清空缩略图和时长，这些将在播放时从视频元素中提取
+      setThumbnail(undefined);
       setIsModalOpen(true);
     }
   };
@@ -77,7 +81,6 @@ function ImportVideoModal() {
     setVideoName("");
     setSubtitleEntries([]);
     setThumbnail(undefined);
-    setDuration(undefined);
     localVideoImport.resetLocalVideoState();
     youtubeVideoImport.resetYoutubeState();
   };
@@ -97,24 +100,24 @@ function ImportVideoModal() {
     // 构建保存参数 - 根据视频类型选择不同的存储方式
     let videoParams;
 
-    if (localVideoImport.selectedHandle) {
+    if (localVideoImport.selectedHandleRef.current) {
       // 支持 File System Access API，存储文件句柄
+      // 缩略图和时长将在播放时从视频元素中提取
       videoParams = {
         name: videoName.trim(),
-        handle: localVideoImport.selectedHandle,
+        handle: localVideoImport.selectedHandleRef.current,
         uniqueValue: localVideoImport.fileHash,
-        thumbnail: thumbnail,
-        duration: duration,
       };
-    } else if (localVideoImport.selectedFile) {
+    } else if (localVideoImport.selectedFileRef.current) {
       // 不支持 File System Access API，生成并存储 blobUrl
-      const blobUrl = URL.createObjectURL(localVideoImport.selectedFile);
+      // 缩略图和时长将在播放时从视频元素中提取
+      const blobUrl = URL.createObjectURL(
+        localVideoImport.selectedFileRef.current
+      );
       videoParams = {
         name: videoName.trim(),
         uniqueValue: localVideoImport.fileHash,
         url: blobUrl,
-        thumbnail: thumbnail,
-        duration: duration,
       };
     } else {
       // YouTube 视频，存储视频标识信息
@@ -154,7 +157,6 @@ function ImportVideoModal() {
     setVideoName("");
     setSubtitleEntries([]);
     setThumbnail(undefined);
-    setDuration(undefined);
     localVideoImport.resetLocalVideoState();
   };
 
@@ -268,28 +270,6 @@ function ImportVideoModal() {
         }
       >
         <div className="flex flex-col gap-4">
-          {/* 视频缩略图 */}
-          {thumbnail && (
-            <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
-              <img
-                src={thumbnail}
-                alt="视频缩略图"
-                className="w-full h-full max-w-full max-h-full object-contain rounded"
-              ></img>
-              {/* 视频时长 - 仅本地视频显示 */}
-              {duration && (
-                <div className="absolute bottom-1 right-1 bg-black bg-opacity-30 text-white text-sm px-2 py-1 rounded">
-                  {duration}
-                </div>
-              )}
-              {/* YouTube 图标 - 没有时长时显示 */}
-              {!duration && (
-                <div className="absolute bottom-1 right-1 text-white text-2xl">
-                  <div className="i-mdi-youtube" />
-                </div>
-              )}
-            </div>
-          )}
           {/* 视频名称输入框 */}
           <Input
             placeholder="请输入视频名称"

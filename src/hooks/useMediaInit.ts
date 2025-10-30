@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MediaDatabaseService from "../services/mediaDatabase";
 import SessionStorageService from "../services/sessionStorage";
 import type { Subtitle } from "../types";
@@ -15,6 +15,8 @@ interface UseMediaInitReturn {
   savedSubtitleIndex: number;
   /** 错误信息 */
   error?: string;
+  /** 视频缩略图 */
+  thumbnail: string;
 }
 
 /**
@@ -28,6 +30,7 @@ export function useMediaInit(mediaId: string | undefined): UseMediaInitReturn {
   const [subtitle, setSubtitle] = useState<Subtitle>();
   const [savedSubtitleIndex, setSavedSubtitleIndex] = useState<number>(-1);
   const [error, setError] = useState<string>();
+  const thumbnail = useRef<string>("");
 
   useEffect(() => {
     let url: string;
@@ -58,6 +61,8 @@ export function useMediaInit(mediaId: string | undefined): UseMediaInitReturn {
           setError("视频文件不存在");
           return;
         }
+
+        thumbnail.current = media.thumbnail || "";
 
         // 检查是否有 File System Access API 的文件句柄
         if (media.handle) {
@@ -99,5 +104,11 @@ export function useMediaInit(mediaId: string | undefined): UseMediaInitReturn {
     };
   }, [mediaId]);
 
-  return { videoUrl, subtitle, savedSubtitleIndex, error };
+  return {
+    videoUrl,
+    subtitle,
+    savedSubtitleIndex,
+    error,
+    thumbnail: thumbnail.current,
+  };
 }

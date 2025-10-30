@@ -307,6 +307,27 @@ export class MediaDatabaseService {
       await db.put("videos", video);
     }
   }
+
+  /**
+   * 更新视频的元数据（缩略图和时长）
+   * @param id - 视频文件句柄ID
+   * @param thumbnail - 视频缩略图 (Data URL)
+   * @param duration - 视频时长格式化字符串 (HH:MM:SS)
+   * @returns Promise<void>
+   */
+  static async updateVideoMetadata(
+    id: number,
+    thumbnail: string,
+    duration: string
+  ): Promise<void> {
+    const db = await getDB();
+    const video = await db.get("videos", id);
+    if (video) {
+      video.thumbnail = thumbnail;
+      video.duration = duration;
+      await db.put("videos", video);
+    }
+  }
 }
 
 /**
