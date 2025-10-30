@@ -151,7 +151,7 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
           {
             accept: {
               // key 是 MIME 类型, value 是文件扩展名
-              "video/*": [".mp4"],
+              "video/*": [".mp4", ".webm", ".mkv", ".mov"],
             },
           },
         ],
@@ -197,7 +197,7 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
       // 动态创建 input 元素
       const input = document.createElement("input");
       input.type = "file";
-      input.accept = "video/mp4,.mp4";
+      input.accept = ".mp4,.webm,.mkv,.mov";
 
       // 处理文件选择
       input.onchange = async (event: Event) => {
