@@ -145,9 +145,11 @@ function extractVideoThumbnail(video: HTMLVideoElement): string {
  * @param file - 视频文件对象
  * @returns Promise<VideoMetadata> 返回包含缩略图 Data URL、时长和编码信息的元数据对象
  */
-export async function extractVideoMetadata(file: File): Promise<VideoMetadata> {
+export async function extractVideoMetadata(
+  file: File
+): Promise<VideoMetadata | false> {
   // 第一步：提取视频编码格式信息（在加载视频前调用）
-  const encodingInfo = await extractEncodingFormat(file);
+  // const encodingInfo = await extractEncodingFormat(file);
 
   // 第二步：创建 Promise 来提取缩略图和时长
   return new Promise((resolve) => {
@@ -166,9 +168,13 @@ export async function extractVideoMetadata(file: File): Promise<VideoMetadata> {
       resolve({
         thumbnail,
         duration,
-        ...(encodingInfo || {}),
       });
     };
+
+    video.onerror = () => {
+      resolve(false);
+    };
+
     // 预加载视频数据，触发 onloadeddata 事件
     video.preload = "auto";
     video.src = url;

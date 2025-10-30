@@ -42,6 +42,11 @@ function ImportVideoModal() {
   const handleImportLocalVideo = async () => {
     const result = await localVideoImport.handleImportVideo();
 
+    if (!result) {
+      message.error("暂不支持该视频文件格式");
+      return;
+    }
+
     if (result) {
       setVideoName(result.videoName);
       setVideoMetadata({

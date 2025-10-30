@@ -108,6 +108,9 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
 
       // 第五步：提取视频编码格式信息
       // const encodingFormat = await extractEncodingFormat(file);
+      if (!metadata) {
+        return false;
+      }
 
       return {
         videoName,
