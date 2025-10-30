@@ -35,8 +35,8 @@ async function getFFmpegInstance(): Promise<FFmpeg> {
   // 动态导入 FFmpeg 模块
   const ffmpeg = new FFmpeg();
 
-  const coreURL = "/ffmpeg-core/ffmpeg-core.js";
-  const wasmURL = "/ffmpeg-core/ffmpeg-core.wasm";
+  const coreURL = "./ffmpeg-core/ffmpeg-core.js";
+  const wasmURL = "./ffmpeg-core/ffmpeg-core.wasm";
 
   await ffmpeg.load({
     coreURL: await toBlobURL(coreURL, "text/javascript"),
