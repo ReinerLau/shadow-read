@@ -63,64 +63,57 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
   > => {
     setIsLoading(true);
 
-    try {
-      // 第一步：计算文件哈希值
-      const computedHash = await MediaDatabaseService.prepareFileForStorage(
-        file
-      );
-      setFileHash(computedHash);
+    // 第一步：计算文件哈希值
+    const computedHash = await MediaDatabaseService.prepareFileForStorage(file);
+    setFileHash(computedHash);
 
-      // 第二步：检查数据库中是否已存在该 hash 的视频
-      const existingVideo = await MediaDatabaseService.getVideoByUniqueValue(
-        computedHash
-      );
+    // 第二步：检查数据库中是否已存在该 hash 的视频
+    const existingVideo = await MediaDatabaseService.getVideoByUniqueValue(
+      computedHash
+    );
 
-      if (existingVideo) {
-        // 视频已存在
-        message.info("视频已存在，直接播放");
-        SessionStorageService.addVideoId(existingVideo.id);
+    if (existingVideo) {
+      // 视频已存在
+      message.info("视频已存在，直接播放");
+      SessionStorageService.addVideoId(existingVideo.id);
 
-        // 检查是否支持 File System Access API
-        if ("showOpenFilePicker" in window) {
-          // 支持 File System Access API，直接跳转播放
-          navigate(`/play/${existingVideo.id}`);
-          return false;
-        } else {
-          // 不支持 File System Access API，需要更新 blobUrl
-          const blobUrl = URL.createObjectURL(file);
-          await MediaDatabaseService.updateVideoBlobUrl(
-            existingVideo.id,
-            blobUrl
-          );
-          navigate(`/play/${existingVideo.id}`);
-          return false;
-        }
-      }
-
-      // 第三步：视频不存在，继续正常流程 - 设置选中的文件和视频名称
-      setSelectedFile(file);
-      const videoName = file.name.replace(/\.[^/.]+$/, ""); // 移除文件扩展名
-
-      const container = file.type.split("/")[1];
-
-      // 第四步：获取视频元数据（缩略图和时长）
-      const metadata = await extractVideoMetadata(file);
-
-      // 第五步：提取视频编码格式信息
-      // const encodingFormat = await extractEncodingFormat(file);
-      if (!metadata) {
+      // 检查是否支持 File System Access API
+      if ("showOpenFilePicker" in window) {
+        // 支持 File System Access API，直接跳转播放
+        navigate(`/play/${existingVideo.id}`);
+        return false;
+      } else {
+        // 不支持 File System Access API，需要更新 blobUrl
+        const blobUrl = URL.createObjectURL(file);
+        await MediaDatabaseService.updateVideoBlobUrl(
+          existingVideo.id,
+          blobUrl
+        );
+        navigate(`/play/${existingVideo.id}`);
         return false;
       }
-
-      return {
-        videoName,
-        thumbnail: metadata.thumbnail,
-        duration: metadata.duration,
-        container: container,
-      };
-    } finally {
-      setIsLoading(false);
     }
+
+    // 第三步：视频不存在，继续正常流程 - 设置选中的文件和视频名称
+    setSelectedFile(file);
+    const videoName = file.name.replace(/\.[^/.]+$/, ""); // 移除文件扩展名
+
+    const container = file.type.split("/")[1];
+
+    // 第四步：获取视频元数据（缩略图和时长）
+    const metadata = await extractVideoMetadata(file);
+
+    // 第五步：提取视频编码格式信息
+    // const encodingFormat = await extractEncodingFormat(file);
+
+    setIsLoading(false);
+
+    return {
+      videoName,
+      thumbnail: metadata ? metadata.thumbnail : "",
+      duration: metadata ? metadata.duration : "",
+      container: container,
+    };
   };
 
   /**
