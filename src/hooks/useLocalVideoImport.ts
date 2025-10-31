@@ -92,7 +92,7 @@ export function useLocalVideoImport(
           {
             accept: {
               // key 是 MIME 类型, value 是文件扩展名
-              "video/*": [".mp4"],
+              "video/*": [".mp4", ".mov", ".mkv", ".webm"],
             },
           },
         ],

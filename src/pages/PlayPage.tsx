@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
-import { Button } from "antd";
+import { Button, message } from "antd";
 import { EditModePopup } from "../components/EditModePopup";
 import { RecordingPopup } from "../components/RecordingPopup";
 import SubtitleList from "../components/SubtitleList";
@@ -378,6 +378,10 @@ function PlayPage() {
     setRecordingMode(false);
   };
 
+  const handleVideoError = () => {
+    message.error("视频播放失败，请检查视频文件格式");
+  };
+
   const isYoutubeVideo = videoUrl?.includes("youtube");
 
   if (error) {
@@ -456,6 +460,7 @@ function PlayPage() {
                   onPause={() => setIsPlaying(false)}
                   playsInline
                   onLoadedData={handleLoadedData}
+                  onError={handleVideoError}
                 />
               )}
               <MediaControlBar>
