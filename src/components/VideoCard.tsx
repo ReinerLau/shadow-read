@@ -87,7 +87,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onVideoDeleted }) => {
             </div>
           )}
           {/* YouTube 图标 - 没有时长时显示 */}
-          {!video.duration && (
+          {video.url?.includes("youtube") && (
             <div className="absolute bottom-2 right-2 text-white text-2xl">
               <div className="i-mdi-youtube" />
             </div>
