@@ -1,5 +1,6 @@
 import { openDB, type IDBPDatabase } from "idb";
 import type { MediaFile, MediaDB, Subtitle } from "../types";
+import { sha256 } from "hash-wasm";
 
 /**
  * 数据库名称和版本
@@ -95,13 +96,7 @@ async function computeFileHash(
     pos += chunk.length;
   }
 
-  // 使用原生 Web Crypto API 计算 SHA256
-  const hashBuffer = await crypto.subtle.digest("SHA-256", combined);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return hashHex;
+  return sha256(combined);
 }
 
 /**
