@@ -26,9 +26,12 @@ interface UseLocalVideoImportReturn {
  * 本地视频导入 Hook
  * 负责处理本地视频文件的选择、哈希计算和重复检查
  * 元数据（缩略图和时长）的提取已迁移至 PlayPage，在视频加载时提取
+ * @param inputRef - 隐藏的 input 元素的 ref
  * @returns 包含本地视频导入相关状态和方法的对象
  */
-export function useLocalVideoImport(): UseLocalVideoImportReturn {
+export function useLocalVideoImport(
+  inputRef?: React.RefObject<HTMLInputElement | null>
+): UseLocalVideoImportReturn {
   const navigate = useNavigate();
   const selectedFileRef = useRef<File | null>(null);
   const selectedHandleRef = useRef<FileSystemFileHandle | null>(null);
@@ -41,50 +44,40 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
    * @returns 是否应该继续处理（false 表示视频已存在）
    */
   const handleFileSelected = async (file: File): Promise<boolean> => {
-    setIsLoading(true);
+    // 第一步：计算文件哈希值
+    const computedHash = await MediaDatabaseService.prepareFileForStorage(file);
+    setFileHash(computedHash);
 
-    try {
-      // 第一步：计算文件哈希值
-      const computedHash = await MediaDatabaseService.prepareFileForStorage(
-        file
-      );
-      setFileHash(computedHash);
+    // 第二步：检查数据库中是否已存在该 hash 的视频
+    const existingVideo = await MediaDatabaseService.getVideoByUniqueValue(
+      computedHash
+    );
 
-      // 第二步：检查数据库中是否已存在该 hash 的视频
-      const existingVideo = await MediaDatabaseService.getVideoByUniqueValue(
-        computedHash
-      );
+    if (existingVideo) {
+      // 视频已存在
+      message.info("视频已存在，直接播放");
+      SessionStorageService.addVideoId(existingVideo.id);
 
-      if (existingVideo) {
-        // 视频已存在
-        message.info("视频已存在，直接播放");
-        SessionStorageService.addVideoId(existingVideo.id);
-
-        // 检查是否支持 File System Access API
-        if ("showOpenFilePicker" in window) {
-          // 支持 File System Access API，直接跳转播放
-          navigate(`/play/${existingVideo.id}`);
-          setIsLoading(false);
-          return false;
-        } else {
-          // 不支持 File System Access API，需要更新 blobUrl
-          const blobUrl = URL.createObjectURL(file);
-          await MediaDatabaseService.updateVideoBlobUrl(
-            existingVideo.id,
-            blobUrl
-          );
-          navigate(`/play/${existingVideo.id}`);
-          setIsLoading(false);
-          return false;
-        }
+      // 检查是否支持 File System Access API
+      if ("showOpenFilePicker" in window) {
+        // 支持 File System Access API，直接跳转播放
+        navigate(`/play/${existingVideo.id}`);
+        return false;
+      } else {
+        // 不支持 File System Access API，需要更新 blobUrl
+        const blobUrl = URL.createObjectURL(file);
+        await MediaDatabaseService.updateVideoBlobUrl(
+          existingVideo.id,
+          blobUrl
+        );
+        navigate(`/play/${existingVideo.id}`);
+        return false;
       }
-
-      // 第三步：视频不存在，继续正常流程 - 设置选中的文件
-      selectedFileRef.current = file;
-      return true;
-    } finally {
-      setIsLoading(false);
     }
+
+    // 第三步：视频不存在，继续正常流程 - 设置选中的文件
+    selectedFileRef.current = file;
+    return true;
   };
 
   /**
@@ -115,31 +108,43 @@ export function useLocalVideoImport(): UseLocalVideoImportReturn {
   };
 
   /**
-   * 处理视频文件导入 - 使用 input 元素作为降级方案
+   * 处理视频文件导入 - 使用隐藏的 input 元素作为降级方案
    */
   const handleImportVideoWithInput = async (): Promise<boolean> => {
     return new Promise((resolve) => {
-      // 动态创建 input 元素
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "video/mp4,.mp4";
+      if (!inputRef?.current) {
+        resolve(false);
+        return;
+      }
 
-      // 处理文件选择
-      input.onchange = async (event: Event) => {
-        const target = event.target as HTMLInputElement;
-        const file = target.files?.[0];
-        if (file) {
-          const result = await handleFileSelected(file);
-          resolve(result);
-        } else {
+      const input = inputRef.current;
+
+      // 定义一次性的事件处理函数
+      const handleFileChange = async (event: Event) => {
+        try {
+          const target = event.target as HTMLInputElement;
+          const file = target.files?.[0];
+          if (file) {
+            const result = await handleFileSelected(file);
+            resolve(result);
+          } else {
+            resolve(false);
+          }
+        } catch {
           resolve(false);
+        } finally {
+          inputRef.current!.value = "";
         }
       };
 
-      // 处理用户取消
-      input.oncancel = () => {
+      const handleFileCancel = () => {
+        inputRef.current!.value = "";
         resolve(false);
       };
+
+      // 监听 change 事件，处理完成后移除监听
+      input.addEventListener("change", handleFileChange, { once: true });
+      input.addEventListener("cancel", handleFileCancel, { once: true });
 
       // 触发文件选择
       input.click();

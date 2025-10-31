@@ -1,5 +1,5 @@
 import { Button, Modal, Input, Upload, message, Dropdown } from "antd";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import MediaDatabaseService from "../services/mediaDatabase";
 import SessionStorageService from "../services/sessionStorage";
@@ -22,8 +22,11 @@ function ImportVideoModal() {
   const [isYoutubeModalOpen, setIsYoutubeModalOpen] = useState(false);
   const [thumbnail, setThumbnail] = useState<string | undefined>();
 
+  // 隐藏的 input 元素 ref
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   // 本地视频导入 Hook
-  const localVideoImport = useLocalVideoImport();
+  const localVideoImport = useLocalVideoImport(fileInputRef);
 
   // YouTube 视频导入 Hook
   const youtubeVideoImport = useYoutubeVideoImport();
@@ -295,6 +298,14 @@ function ImportVideoModal() {
           </Upload>
         </div>
       </Modal>
+
+      {/* 隐藏的文件输入元素，作为 File System Access API 的降级方案 */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".mp4,.mov,.mkv,.webm"
+        style={{ display: "none" }}
+      />
     </>
   );
 }
