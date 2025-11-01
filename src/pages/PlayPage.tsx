@@ -1,11 +1,16 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Button, message } from "antd";
 import { EditModePopup } from "../components/EditModePopup";
 import { RecordingPopup } from "../components/RecordingPopup";
 import SubtitleList from "../components/SubtitleList";
 import { MoreModal } from "../components/MoreModal";
-import { PlayModeValues, type PlayMode } from "../types";
+import {
+  PlayModeValues,
+  type PlayMode,
+  type Subtitle,
+  type SubtitleEntry,
+} from "../types";
 import { useMediaInit } from "../hooks/useMediaInit";
 import { useSubtitleIndexPersist } from "../hooks/useSubtitleIndexPersist";
 import { extractMetadataFromVideoElement } from "../services/videoData";
@@ -28,9 +33,27 @@ function PlayPage() {
   const navigate = useNavigate();
   const videoRef = useRef<CustomVideoElement>(null);
 
-  const { videoUrl, subtitle, savedSubtitleIndex, error, thumbnail } =
-    useMediaInit(mediaId);
+  const {
+    videoUrl,
+    subtitle: subtitleFromHook,
+    savedSubtitleIndex,
+    error,
+    thumbnail,
+  } = useMediaInit(mediaId);
+  /** 本地字幕状态，用于在编辑后立即更新 UI */
+  const [subtitle, setSubtitle] = useState<Subtitle | undefined>(
+    subtitleFromHook
+  );
   const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState<number>(-1);
+
+  /**
+   * 同步字幕状态，当 hook 返回的字幕数据变化时更新本地状态
+   */
+  useEffect(() => {
+    if (subtitleFromHook) {
+      setSubtitle(subtitleFromHook);
+    }
+  }, [subtitleFromHook]);
   const [isMoreModalOpen, setIsMoreModalOpen] = useState<boolean>(false);
   const [playMode, setPlayMode] = useState<PlayMode>(PlayModeValues.OFF);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -43,6 +66,8 @@ function PlayPage() {
     startTime: 0,
     endTime: 0,
   });
+  /** 编辑模式下的字幕文本 */
+  const [editedText, setEditedText] = useState<string>("");
   /** 字幕模糊状态 */
   const [subtitleBlurred, setSubtitleBlurred] = useState<boolean>(false);
   /** 是否正在拖动进度条 */
@@ -162,7 +187,7 @@ function PlayPage() {
 
     // 查找当前时间对应的字幕索引
     const index = subtitle.entries.findIndex(
-      (entry) =>
+      (entry: SubtitleEntry) =>
         currentTimeMs >= entry.startTime && currentTimeMs < entry.endTime
     );
 
@@ -276,6 +301,8 @@ function PlayPage() {
       startTime: targetEntry.preciseStartTime,
       endTime: targetEntry.preciseEndTime,
     });
+    // 初始化编辑文本为当前字幕文本
+    setEditedText(targetEntry.text);
     // 跳转到对应字幕的开始位置
     videoRef.current.currentTime = targetEntry.startTime / 1000;
     // 暂停播放
@@ -295,6 +322,8 @@ function PlayPage() {
       startTime: 0,
       endTime: 0,
     });
+    // 重置编辑文本
+    setEditedText("");
   };
 
   /**
@@ -319,10 +348,17 @@ function PlayPage() {
   };
 
   /**
-   * 处理保存时间偏移
+   * 处理保存字幕校准（包括时间校准和文本编辑）
    */
-  const handleSaveTimeOffset = async () => {
+  const handleSaveSubtitleEdit = async () => {
     if (!subtitle || currentSubtitleIndex === -1 || !editedTime) return;
+
+    // 验证文本不为空
+    const trimmedText = editedText?.trim() ?? "";
+    if (trimmedText === "") {
+      message.warning("字幕文本不能为空");
+      return;
+    }
 
     try {
       // 创建新的字幕条目副本
@@ -337,14 +373,23 @@ function PlayPage() {
         currentEntry.preciseEndTime = editedTime.endTime;
       }
 
+      // 更新当前字幕条目的文本
+      currentEntry.text = trimmedText;
+
       // 保存更新后的字幕数据到数据库
       await MediaDatabaseService.updateSubtitle(updatedSubtitle);
+
+      // 更新本地字幕状态以立即反映更改
+      setSubtitle(updatedSubtitle);
+
+      // 显示成功提示
+      message.success("保存成功");
 
       // 退出编辑模式
       handleExitEditMode();
     } catch {
-      // 错误处理：如果保存失败，可以显示错误提示
-      // 这里可以集成 Ant Design 的 message 组件来显示错误信息
+      // 错误处理：如果保存失败，显示错误提示
+      message.error("保存失败，请重试");
     }
   };
 
@@ -527,10 +572,12 @@ function PlayPage() {
       <EditModePopup
         editMode={editMode}
         editedTime={editedTime}
+        editedText={editedText}
         isPlaying={isPlaying}
         onExitEditMode={handleExitEditMode}
-        onSaveTimeOffset={handleSaveTimeOffset}
+        onSaveSubtitleEdit={handleSaveSubtitleEdit}
         onTimeOffset={handleTimeOffset}
+        onTextChange={setEditedText}
         onTogglePlayPause={handleTogglePlayPause}
       />
       {/* 录音模式 Popup */}

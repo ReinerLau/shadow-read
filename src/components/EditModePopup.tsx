@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, InputNumber } from "antd";
+import { Button, InputNumber, Input } from "antd";
 import { Popup } from "antd-mobile";
 
 /**
@@ -28,34 +28,40 @@ interface EditModePopupProps {
     startTime: number;
     endTime: number;
   };
+  /** 编辑的字幕文本 */
+  editedText: string;
   /** 是否正在播放 */
   isPlaying: boolean;
   /** 退出编辑模式的回调 */
   onExitEditMode: () => void;
-  /** 保存时间偏移的回调 */
-  onSaveTimeOffset: () => void;
+  /** 保存字幕校准的回调 */
+  onSaveSubtitleEdit: () => void;
   /** 处理时间偏移的回调 */
   onTimeOffset: (
     offset: number,
     isStartTime: boolean,
     isForward: boolean
   ) => void;
+  /** 处理文本变化的回调 */
+  onTextChange: (text: string) => void;
   /** 切换播放/暂停的回调 */
   onTogglePlayPause: () => void;
 }
 
 /**
  * 编辑模式 Popup 组件
- * 用于编辑字幕的开始和结束时间
+ * 用于编辑字幕的开始和结束时间以及文本内容
  * 内部管理时间偏移步长状态
  */
 export const EditModePopup = ({
   editMode,
   editedTime,
+  editedText,
   isPlaying,
   onExitEditMode,
-  onSaveTimeOffset,
+  onSaveSubtitleEdit,
   onTimeOffset,
+  onTextChange,
   onTogglePlayPause,
 }: EditModePopupProps) => {
   /** 时间偏移步长（毫秒），默认 100ms */
@@ -68,9 +74,25 @@ export const EditModePopup = ({
           <Button className="flex-1" onClick={onExitEditMode}>
             取消
           </Button>
-          <Button className="flex-1" type="primary" onClick={onSaveTimeOffset}>
+          <Button
+            className="flex-1"
+            type="primary"
+            onClick={onSaveSubtitleEdit}
+          >
             保存
           </Button>
+        </div>
+        {/* 字幕文本编辑 */}
+        <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="text-xs text-gray-500 mb-1">字幕文本</div>
+          <Input.TextArea
+            value={editedText}
+            onChange={(e) => onTextChange(e.target.value)}
+            placeholder="输入字幕文本"
+            rows={3}
+            className="w-full"
+            autoSize={{ minRows: 3, maxRows: 6 }}
+          />
         </div>
         {/* 步长设置 */}
         <div className="p-4 bg-gray-50 rounded-lg">

@@ -71,7 +71,7 @@ const SubtitleRow = ({
       actions: [
         {
           key: "offset",
-          text: "偏移",
+          text: "校准",
           onClick: handleOffset,
         },
         {
