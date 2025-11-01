@@ -6,6 +6,7 @@ import MediaDatabaseService from "../services/mediaDatabase";
 import SessionStorageService from "../services/sessionStorage";
 import type { MediaFile } from "../types";
 import { Dialog } from "antd-mobile";
+import packageJson from "../../package.json";
 
 /**
  * 首页组件
@@ -66,7 +67,7 @@ function HomePage() {
 
   const handleMoreClick = () => {
     Dialog.show({
-      title: "更多操作",
+      title: `v${packageJson.version}`,
       closeOnMaskClick: true,
       closeOnAction: true,
       actions: [
